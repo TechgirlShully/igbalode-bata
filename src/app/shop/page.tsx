@@ -35,9 +35,27 @@ const products = [
     id: 4,
     name: "The Ajibola",
     category: "Men",
-    type: "Executive Men's Shoes",
+    type: "Executive Men Loafers",
     price: "₦70,000",
     image: "/products/men/ajibola.jpg",
+  },
+
+  {
+    id: 5,
+    name: "The Ajiboye",
+    category: "Men",
+    type: "Classic Men Mules",
+    price: "₦30,000",
+    image: "/products/men/ajiboye.jpg",
+  },
+
+  {
+    id: 6,
+    name: "The Aduke",
+    category: "Women",
+    type: "Classic Leather Slippers",
+    price: "₦35,000",
+    image: "/products/women/aduke.jpg",
   },
 ];
 

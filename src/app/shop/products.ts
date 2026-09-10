@@ -73,10 +73,10 @@ const products = {
 
   "4": {
     name: "The Ajibola",
-    category: "Executive Men's Shoe",
+    category: "Executive Men Loafers",
     price: "₦70,000",
     description:
-      "Executive men's shoe with a polished silhouette made for effortless everyday style.",
+      "Executive men loafer with a polished silhouette made for effortless everyday style.",
     colors: [
       {
         name: "Black & White",
@@ -85,6 +85,38 @@ const products = {
       
     ],
     sizes: ["40", "41", "42", "43", "44", "45"],
+  },
+
+  "5": {
+    name: "The Ajiboye",
+    category: "Classic Men Mules",
+    price: "₦30,000",
+    description:
+      "A modern piece made for effortless everyday style.",
+    colors: [
+      {
+        name: "Brown",
+        image: "/products/men/ajiboye.jpg",
+      },
+      
+    ],
+    sizes: ["40", "41", "42", "43", "44", "45"],
+  },
+
+  "6": {
+    name: "The Aduke",
+    category: "Women's Leather Slippers",
+    price: "₦35,000",
+    description:
+      "An elegant statement piece designed for evenings, celebrations and unforgettable occasions.",
+    colors: [
+      {
+        name: "Wine",
+        image: "/products/women/aduke.jpg",
+      },
+      
+    ],
+    sizes: ["36", "37", "38", "39", "40", "41" ],
   },
 };
 
