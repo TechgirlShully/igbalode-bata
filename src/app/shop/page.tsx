@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import Image from "next/image";
 import { Heart, SlidersHorizontal } from "lucide-react";
 import { motion } from "framer-motion";
@@ -122,7 +123,7 @@ export default function ShopPage() {
                     alt={product.name}
                     fill
                     className="object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
+                   />  </div>
 
                   {/* Wishlist */}
                   <button
@@ -133,13 +134,12 @@ export default function ShopPage() {
                   </button>
 
                   {/* View Product */}
-                  <a
-                    href={`/shop/${product.id}`}
-                    className="absolute bottom-4 left-4 right-4 translate-y-3 bg-[#171717] px-5 py-4 text-center text-[10px] font-semibold uppercase tracking-[0.18em] !text-[#f5f3ee] opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100"
+                  <Link
+                  href={`/shop/${product.id}`}
+                  className="absolute bottom-4 left-4 right-4 translate-y-3 bg-[#171717] px-5 py-4 text-center text-[10px] font-semibold uppercase tracking-[0.18em] !text-[#f5f3ee] opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100"
                   >
-                    View Product
-                  </a>
-                </div>
+                  View Product
+                  </Link>
 
                 {/* Details */}
                 <div className="mt-5">
