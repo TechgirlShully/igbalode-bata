@@ -15,8 +15,32 @@ const links = [
   { name: "About", href: "#about" },
 ];
 
+const categories = {
+  Men: [
+    { name: "All Men's Shoes", href: "/shop?category=men" },
+    { name: "Mules", href: "/shop?category=mules" },
+    { name: "Half Shoes", href: "/shop?category=half-shoes" },
+    { name: "Loafers", href: "/shop?category=loafers" },
+  ],
+
+  Women: [
+    { name: "All Women's Shoes", href: "/shop?category=women" },
+    { name: "Party Shoes", href: "/shop?category=party" },
+    { name: "Office Shoes", href: "/shop?category=office" },
+    { name: "Slippers", href: "/shop?category=slippers" },
+    { name: "Bags", href: "/shop?category=bags" },
+  ],
+
+  Kids: [
+    { name: "All Kids' Shoes", href: "/shop?category=kids" },
+    { name: "Girls", href: "/shop?category=girls" },
+    { name: "Boys", href: "/shop?category=boys" },
+  ],
+};
+
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [openCategory, setOpenCategory] = useState<string | null>(null);
   const { cartCount } = useCart();
   const { wishlistCount } = useWishlist();
   return (
@@ -187,20 +211,69 @@ export default function Navbar() {
             </div>
 
             <div className="flex flex-col px-6 pt-16">
-              {links.map((link, index) => (
-                <motion.a
-                  key={link.name}
-                  href={link.href}
+  {links.map((link, index) => {
+    const hasCategories =
+      link.name === "Men" ||
+      link.name === "Women" ||
+      link.name === "Kids";
+
+    const isOpen = openCategory === link.name;
+
+    return (
+      <div key={link.name} className="border-b border-white/10">
+        <div className="flex items-center justify-between">
+          <a
+            href={link.href}
+            onClick={() => {
+              if (!hasCategories) {
+                setMenuOpen(false);
+              }
+            }}
+            className="flex-1 py-5 font-display text-4xl"
+          >
+            {link.name}
+          </a>
+
+          {hasCategories && (
+            <button
+              onClick={() =>
+                setOpenCategory(isOpen ? null : link.name)
+              }
+              aria-label={`Open ${link.name} categories`}
+              className="px-4 py-5 text-2xl"
+            >
+              {isOpen ? "−" : "+"}
+            </button>
+          )}
+        </div>
+
+        <AnimatePresence>
+          {hasCategories && isOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden pb-4"
+            >
+              {categories[
+                link.name as keyof typeof categories
+              ].map((category) => (
+                <a
+                  key={category.name}
+                  href={category.href}
                   onClick={() => setMenuOpen(false)}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.07 }}
-                  className="border-b border-white/10 py-5 font-display text-4xl"
+                  className="block py-2 pl-2 text-sm tracking-wide text-[#f5f3ee]/60 transition hover:text-[#f5f3ee]"
                 >
-                  {link.name}
-                </motion.a>
+                  {category.name}
+                </a>
               ))}
-            </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  })}
+</div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -15,6 +15,7 @@ const products = [
       "/products/men/ademola3.jpg",
       "/products/men/ademola4.jpg",
       "/products/men/ademola5.jpg",
+      
     ],
   },
   {
