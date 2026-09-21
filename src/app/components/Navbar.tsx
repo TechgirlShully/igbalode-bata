@@ -4,6 +4,8 @@ import Image from "next/image";
 import { Heart, Menu, Search, ShoppingBag, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
+import { useCart } from "../context/CartContext";
+import { useWishlist } from "../context/WishlistContext";
 
 const links = [
   { name: "Shop", href: "/shop" },
@@ -15,7 +17,8 @@ const links = [
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
-
+  const { cartCount } = useCart();
+  const { wishlistCount } = useWishlist();
   return (
     <>
       <header className="fixed left-0 right-0 top-0 z-50 border-b border-[#171717]/10 bg-[#f5f3ee]">
@@ -65,33 +68,83 @@ export default function Navbar() {
               <Search size={19} strokeWidth={1.5} />
             </button>
 
-            <button
-              aria-label="Wishlist"
-              className="transition-transform duration-300 hover:-translate-y-0.5"
-            >
-              <Heart size={19} strokeWidth={1.5} />
-            </button>
+            <a
+  href="/wishlist"
+  aria-label="Wishlist"
+  className="relative transition-transform duration-300 hover:-translate-y-0.5"
+>
+  <Heart
+    size={19}
+    strokeWidth={1.5}
+    fill={wishlistCount > 0 ? "currentColor" : "none"}
+  />
 
-            <button
-              aria-label="Shopping bag"
-              className="relative transition-transform duration-300 hover:-translate-y-0.5"
-            >
-              <ShoppingBag size={19} strokeWidth={1.5} />
+  {wishlistCount > 0 && (
+    <span className="absolute -right-2 -top-2 flex h-[15px] min-w-[15px] items-center justify-center rounded-full bg-[#1c1b18] px-1 text-[8px] text-white">
+      {wishlistCount}
+    </span>
+  )}
+</a>
 
-              <span className="absolute -right-2 -top-2 flex h-[15px] w-[15px] items-center justify-center rounded-full bg-[#1c1b18] text-[8px] text-white">
-                0
-              </span>
-            </button>
+            <a
+  href="/bag"
+  aria-label="Shopping bag"
+  className="relative transition-transform duration-300 hover:-translate-y-0.5"
+>
+  <ShoppingBag size={19} strokeWidth={1.5} />
+
+  {cartCount > 0 && (
+    <span className="absolute -right-2 -top-2 flex h-[15px] min-w-[15px] items-center justify-center rounded-full bg-[#1c1b18] px-1 text-[8px] text-white">
+      {cartCount}
+    </span>
+  )}
+</a>
           </div>
 
-          {/* Mobile */}
-          <button
-            onClick={() => setMenuOpen(true)}
-            className="lg:hidden"
-            aria-label="Open menu"
-          >
-            <Menu size={24} strokeWidth={1.5} />
-          </button>
+         {/* Mobile Actions */}
+<div className="flex items-center gap-4 lg:hidden">
+  {/* Wishlist */}
+  <a
+    href="/wishlist"
+    aria-label="Wishlist"
+    className="relative"
+  >
+    <Heart
+      size={21}
+      strokeWidth={1.5}
+      fill={wishlistCount > 0 ? "currentColor" : "none"}
+    />
+
+    {wishlistCount > 0 && (
+      <span className="absolute -right-2 -top-2 flex h-[15px] min-w-[15px] items-center justify-center rounded-full bg-[#1c1b18] px-1 text-[8px] text-white">
+        {wishlistCount}
+      </span>
+    )}
+  </a>
+
+  {/* Shopping Bag */}
+  <a
+    href="/bag"
+    aria-label="Shopping bag"
+    className="relative"
+  >
+    <ShoppingBag size={21} strokeWidth={1.5} />
+
+    {cartCount > 0 && (
+      <span className="absolute -right-2 -top-2 flex h-[15px] min-w-[15px] items-center justify-center rounded-full bg-[#1c1b18] px-1 text-[8px] text-white">
+        {cartCount}
+      </span>
+    )}
+  </a>
+
+  {/* Menu */}
+  <button
+    onClick={() => setMenuOpen(true)}
+    aria-label="Open menu"
+  >
+    <Menu size={24} strokeWidth={1.5} />
+  </button>
+</div>
         </nav>
       </header>
 

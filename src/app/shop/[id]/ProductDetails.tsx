@@ -9,16 +9,25 @@ import {
   ShoppingBag,
 } from "lucide-react";
 import { useState } from "react";
+import { useCart } from "../../context/CartContext";
 import type { Product } from "../products";
+import { useWishlist } from "../../context/WishlistContext";
 
 export default function ProductDetails({
   product,
+  productId,
 }: {
   product: Product;
+  productId: string;
 }) {
+
   const [selectedColor, setSelectedColor] = useState(0);
   const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [addedToBag, setAddedToBag] = useState(false);
+
+  const { addToCart } = useCart();
+  const { toggleWishlist, isWishlisted } = useWishlist();
 
   const currentImage = product.colors[selectedColor].image;
 
@@ -163,19 +172,60 @@ export default function ProductDetails({
             {/* Actions */}
             <div className="mt-8 flex gap-3">
               <button
-                disabled={!selectedSize}
-                className="flex flex-1 items-center justify-center gap-3 bg-[#171717] px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.18em] !text-[#f5f3ee] transition hover:bg-[#33312d] disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <ShoppingBag size={17} strokeWidth={1.5} />
-                Add to Bag
-              </button>
+  disabled={!selectedSize}
+  onClick={() => {
+    if (!selectedSize) return;
 
-              <button
-                aria-label="Add to wishlist"
-                className="flex h-[52px] w-[52px] items-center justify-center border border-[#171717]/15 transition hover:border-[#171717]"
-              >
-                <Heart size={18} strokeWidth={1.5} />
-              </button>
+    addToCart({
+      id: productId,
+      name: product.name,
+      price: product.price,
+      image: currentImage,
+      color: product.colors[selectedColor].name,
+      size: selectedSize,
+      quantity,
+    });
+
+    setAddedToBag(true);
+
+    setTimeout(() => {
+      setAddedToBag(false);
+    }, 2000);
+  }}
+  className="flex flex-1 items-center justify-center gap-3 bg-[#171717] px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.18em] !text-[#f5f3ee] transition hover:bg-[#33312d] disabled:cursor-not-allowed disabled:opacity-40"
+>
+  <ShoppingBag size={17} strokeWidth={1.5} />
+
+  {addedToBag ? "Added to Bag ✓" : "Add to Bag"}
+</button>
+
+            <button
+  aria-label={
+    isWishlisted(productId)
+      ? "Remove from wishlist"
+      : "Add to wishlist"
+  }
+  onClick={() =>
+    toggleWishlist({
+      id: productId,
+      name: product.name,
+      price: product.price,
+      image: currentImage,
+      category: product.category,
+    })
+  }
+  className={`flex h-[52px] w-[52px] items-center justify-center border transition ${
+    isWishlisted(productId)
+      ? "border-[#171717] bg-[#171717] text-[#f5f3ee]"
+      : "border-[#171717]/15 hover:border-[#171717]"
+  }`}
+>
+  <Heart
+    size={18}
+    strokeWidth={1.5}
+    fill={isWishlisted(productId) ? "currentColor" : "none"}
+  />
+</button> 
             </div>
 
             {!selectedSize && (

@@ -19,8 +19,8 @@ const contacts = [
   {
     icon: Mail,
     label: "Email",
-    value: "hello@igbalodebata.com",
-    href: "mailto:hello@igbalodebata.com",
+    value: "igbalodebata.info@gmail.com",
+    href: "igbalodebata.info@gmaail.com",
   },
   {
     icon: Phone,

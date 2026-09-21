@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Heart, SlidersHorizontal } from "lucide-react";
 import { motion } from "framer-motion";
+import { useWishlist } from "../context/WishlistContext";
 
 const products = [
   {
@@ -61,6 +62,8 @@ const products = [
 ];
 
 export default function ShopPage() {
+  const { toggleWishlist, isWishlisted } = useWishlist();
+
   return (
     <main className="min-h-screen bg-[#f5f3ee] pt-28">
       {/* Header */}
@@ -127,11 +130,32 @@ export default function ShopPage() {
 
                   {/* Wishlist */}
                   <button
-                    aria-label={`Add ${product.name} to wishlist`}
-                    className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-[#f5f3ee]/95 transition hover:bg-[#171717] hover:text-[#f5f3ee]"
-                  >
-                    <Heart size={16} strokeWidth={1.5} />
-                  </button>
+  aria-label={
+    isWishlisted(String(product.id))
+      ? `Remove ${product.name} from wishlist`
+      : `Add ${product.name} to wishlist`
+  }
+  onClick={() =>
+    toggleWishlist({
+      id: String(product.id),
+      name: product.name,
+      price: product.price,
+      image: product.image,
+      category: product.category,
+    })
+  }
+  className={`absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full transition ${
+    isWishlisted(String(product.id))
+      ? "bg-[#171717] text-[#f5f3ee]"
+      : "bg-[#f5f3ee]/95 text-[#171717] hover:bg-[#171717] hover:text-[#f5f3ee]"
+  }`}
+>
+  <Heart
+    size={16}
+    strokeWidth={1.5}
+    fill={isWishlisted(String(product.id)) ? "currentColor" : "none"}
+  />
+</button>
 
                   {/* View Product */}
                   <Link
