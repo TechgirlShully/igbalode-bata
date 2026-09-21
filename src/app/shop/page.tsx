@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { Heart, Search, SlidersHorizontal } from "lucide-react";
 import { motion } from "framer-motion";
 import { useSearchParams } from "next/navigation";
@@ -72,7 +72,7 @@ const shopFilters = [
   { name: "Bags", value: "bags" },
 ];
 
-export default function ShopPage() {
+function ShopPageContent() {
   const searchParams = useSearchParams();
   const categoryFilter = searchParams.get("category");
   const searchQuery = searchParams.get("search")?.toLowerCase() || "";
@@ -359,5 +359,27 @@ if (!matchesSearch) {
         </div>
       </section>
     </main>
+  );
+}
+
+export default function ShopPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-[#f5f3ee] px-6 py-24 text-[#1c1b18]">
+          <div className="mx-auto max-w-[1440px]">
+            <p className="text-[10px] uppercase tracking-[0.25em] text-[#77736b]">
+              Loading Shop
+            </p>
+
+            <h1 className="mt-4 font-display text-5xl">
+              Shop
+            </h1>
+          </div>
+        </main>
+      }
+    >
+      <ShopPageContent />
+    </Suspense>
   );
 }
