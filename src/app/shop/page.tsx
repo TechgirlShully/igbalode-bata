@@ -2,9 +2,12 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useState } from "react";
 import { Heart, SlidersHorizontal } from "lucide-react";
 import { motion } from "framer-motion";
+import { useSearchParams } from "next/navigation";
 import { useWishlist } from "../context/WishlistContext";
+
 
 const products = [
   {
@@ -61,8 +64,70 @@ const products = [
   },
 ];
 
+const shopFilters = [
+  { name: "All", value: "all" },
+  { name: "Men", value: "men" },
+  { name: "Women", value: "women" },
+  { name: "Kids", value: "kids" },
+  { name: "Bags", value: "bags" },
+];
+
 export default function ShopPage() {
+  const searchParams = useSearchParams();
+  const categoryFilter = searchParams.get("category");
+
   const { toggleWishlist, isWishlisted } = useWishlist();
+  const [filterOpen, setFilterOpen] = useState(false);
+
+  const filteredProducts = products.filter((product) => {
+  if (!categoryFilter || categoryFilter === "all") {
+    return true;
+  }
+
+  const category = product.category.toLowerCase();
+  const type = product.type.toLowerCase();
+
+  switch (categoryFilter) {
+    case "men":
+      return product.category === "Men";
+
+    case "women":
+      return product.category === "Women";
+
+    case "kids":
+      return product.category === "Kids";
+
+    case "mules":
+      return type.includes("mule");
+
+    case "half-shoes":
+      return type.includes("half shoe");
+
+    case "loafers":
+      return type.includes("loafer");
+
+    case "party":
+      return type.includes("party");
+
+    case "office":
+      return type.includes("office");
+
+    case "slippers":
+      return type.includes("slipper");
+
+    case "bags":
+      return category.includes("bag");
+
+    case "girls":
+      return category === "Kids" && type.toLowerCase().includes("girl");
+
+    case "boys":
+      return category === "Kids" && type.toLowerCase().includes("boy");
+
+    default:
+      return true;
+  }
+});
 
   return (
     <main className="min-h-screen bg-[#f5f3ee] pt-28">
@@ -85,29 +150,73 @@ export default function ShopPage() {
               </p>
             </div>
 
-            <button className="flex items-center gap-3 self-start border border-[#171717]/15 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] transition hover:bg-[#171717] hover:text-[#f5f3ee] md:self-auto">
-              <SlidersHorizontal size={15} strokeWidth={1.5} />
-              Filter
-            </button>
+            <button
+  onClick={() => setFilterOpen((current) => !current)}
+  className={`flex items-center gap-3 self-start border px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] transition md:self-auto ${
+    filterOpen || categoryFilter
+      ? "border-[#171717] bg-[#171717] text-[#f5f3ee]"
+      : "border-[#171717]/15 hover:bg-[#171717] hover:text-[#f5f3ee]"
+  }`}
+>
+  <SlidersHorizontal size={15} strokeWidth={1.5} />
+  Filter
+</button>
           </div>
         </div>
       </section>
+
+      {filterOpen && (
+  <section className="border-b border-[#171717]/10 bg-[#eeece5] px-6 py-6 lg:px-12">
+    <div className="mx-auto max-w-[1440px]">
+      <div className="flex flex-wrap items-center gap-2">
+        {shopFilters.map((filter) => {
+          const active =
+            filter.value === "all"
+              ? !categoryFilter || categoryFilter === "all"
+              : categoryFilter === filter.value;
+
+          return (
+            <Link
+              key={filter.value}
+              href={
+                filter.value === "all"
+                  ? "/shop"
+                  : `/shop?category=${filter.value}`
+              }
+              onClick={() => setFilterOpen(false)}
+              className={`border px-5 py-3 text-[9px] font-semibold uppercase tracking-[0.18em] transition ${
+                active
+                  ? "border-[#171717] bg-[#171717] !text-[#f5f3ee]"
+                  : "border-[#171717]/15 text-[#77736b] hover:border-[#171717] hover:text-[#171717]"
+              }`}
+            >
+              {filter.name}
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+)}
 
       {/* Products */}
       <section className="px-6 py-12 lg:px-12 lg:py-16">
         <div className="mx-auto max-w-[1440px]">
           <div className="mb-8 flex items-center justify-between">
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#77736b]">
-              {products.length} Products
+              {filteredProducts.length}{" "}
+            {filteredProducts.length === 1 ? "Product" : "Products"}
             </p>
 
             <p className="text-[10px] uppercase tracking-[0.18em] text-[#77736b]">
-              All Footwear
-            </p>
+  {categoryFilter
+    ? categoryFilter.replace("-", " ")
+    : "All Footwear"}
+</p>
           </div>
 
           <div className="grid grid-cols-1 gap-x-5 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {products.map((product, index) => (
+            {filteredProducts.map((product, index) => (
               <motion.article
                 key={product.id}
                 initial={{ opacity: 0, y: 20 }}
