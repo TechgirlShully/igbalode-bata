@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import { Heart, SlidersHorizontal } from "lucide-react";
+import { Heart, Search, SlidersHorizontal } from "lucide-react";
 import { motion } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 import { useWishlist } from "../context/WishlistContext";
@@ -75,11 +75,22 @@ const shopFilters = [
 export default function ShopPage() {
   const searchParams = useSearchParams();
   const categoryFilter = searchParams.get("category");
+  const searchQuery = searchParams.get("search")?.toLowerCase() || "";
 
   const { toggleWishlist, isWishlisted } = useWishlist();
   const [filterOpen, setFilterOpen] = useState(false);
 
   const filteredProducts = products.filter((product) => {
+    const matchesSearch =
+  !searchQuery ||
+  product.name.toLowerCase().includes(searchQuery) ||
+  product.category.toLowerCase().includes(searchQuery) ||
+  product.type.toLowerCase().includes(searchQuery);
+
+if (!matchesSearch) {
+  return false;
+}
+
   if (!categoryFilter || categoryFilter === "all") {
     return true;
   }
@@ -150,17 +161,42 @@ export default function ShopPage() {
               </p>
             </div>
 
-            <button
-  onClick={() => setFilterOpen((current) => !current)}
-  className={`flex items-center gap-3 self-start border px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] transition md:self-auto ${
-    filterOpen || categoryFilter
-      ? "border-[#171717] bg-[#171717] text-[#f5f3ee]"
-      : "border-[#171717]/15 hover:bg-[#171717] hover:text-[#f5f3ee]"
-  }`}
->
-  <SlidersHorizontal size={15} strokeWidth={1.5} />
-  Filter
-</button>
+            <div className="flex flex-col gap-3 self-start sm:flex-row md:self-auto">
+  {/* Search */}
+  <form
+    action="/shop"
+    className="flex border border-[#171717]/15 bg-[#f5f3ee]"
+  >
+    <input
+      type="search"
+      name="search"
+      defaultValue={searchQuery}
+      placeholder="Search footwear..."
+      className="w-[210px] bg-transparent px-4 py-3 text-[10px] uppercase tracking-[0.12em] outline-none placeholder:text-[#99958d] sm:w-[230px]"
+    />
+
+    <button
+      type="submit"
+      aria-label="Search products"
+      className="flex items-center justify-center px-4 transition hover:bg-[#171717] hover:text-[#f5f3ee]"
+    >
+      <Search size={15} strokeWidth={1.5} />
+    </button>
+  </form>
+
+  {/* Filter */}
+  <button
+    onClick={() => setFilterOpen((current) => !current)}
+    className={`flex items-center justify-center gap-3 border px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] transition ${
+      filterOpen || categoryFilter
+        ? "border-[#171717] bg-[#171717] text-[#f5f3ee]"
+        : "border-[#171717]/15 hover:bg-[#171717] hover:text-[#f5f3ee]"
+    }`}
+  >
+    <SlidersHorizontal size={15} strokeWidth={1.5} />
+    Filter
+  </button>
+</div>
           </div>
         </div>
       </section>
@@ -216,7 +252,8 @@ export default function ShopPage() {
           </div>
 
           <div className="grid grid-cols-1 gap-x-5 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filteredProducts.map((product, index) => (
+            {filteredProducts.length > 0 ? (
+  filteredProducts.map((product, index) => (
               <motion.article
                 key={product.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -294,8 +331,31 @@ export default function ShopPage() {
                   </div>
                 </div>
               </motion.article>
-            ))}
-          </div>
+                ))
+) : (
+  <div className="col-span-full flex min-h-[350px] flex-col items-center justify-center text-center">
+    <p className="text-[10px] font-medium uppercase tracking-[0.3em] text-[#77736b]">
+      Collection
+    </p>
+
+    <h2 className="mt-4 font-display text-4xl text-[#1c1b18]">
+      Nothing here yet
+    </h2>
+
+    <p className="mt-4 max-w-[380px] text-sm leading-6 text-[#68645d]">
+      We're adding more pieces to this collection. Check back soon or
+      explore the rest of our footwear.
+    </p>
+
+    <Link
+      href="/shop"
+      className="mt-7 bg-[#171717] px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.18em] !text-[#f5f3ee] transition hover:bg-[#33312d]"
+    >
+      View All Footwear
+    </Link>
+  </div>
+)}
+</div>
         </div>
       </section>
     </main>

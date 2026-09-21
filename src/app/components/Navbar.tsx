@@ -85,12 +85,13 @@ export default function Navbar() {
 
           {/* Actions */}
           <div className="hidden items-center gap-5 lg:flex">
-            <button
-              aria-label="Search"
-              className="transition-transform duration-300 hover:-translate-y-0.5"
-            >
-              <Search size={19} strokeWidth={1.5} />
-            </button>
+            <a
+  href="/shop?search="
+  aria-label="Search"
+  className="transition-transform duration-300 hover:-translate-y-0.5"
+>
+  <Search size={19} strokeWidth={1.5} />
+</a>
 
             <a
   href="/wishlist"

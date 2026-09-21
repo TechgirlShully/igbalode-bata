@@ -207,17 +207,14 @@ export default function BagPage() {
               <span className="text-lg font-medium">{formattedSubtotal}</span>
             </div>
 
-            <button
-              disabled
-              className="mt-8 w-full bg-[#171717] px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.18em] !text-[#f5f3ee] opacity-60"
-            >
-              Checkout
-            </button>
+            <Link
+  href="/checkout"
+  className="block w-full bg-[#171717] px-6 py-5 text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-[#f5f3ee] transition hover:bg-[#33312d]"
+>
+  Checkout
+</Link>
 
-            <p className="mt-4 text-center text-[9px] leading-5 text-[#77736b]">
-              Checkout will be enabled when we set up your payment and
-              delivery process.
-            </p>
+            
           </aside>
         </div>
       </div>
