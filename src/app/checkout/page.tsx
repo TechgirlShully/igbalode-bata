@@ -4,6 +4,194 @@ import Link from "next/link";
 import { useState } from "react";
 import { useCart } from "../context/CartContext";
 
+const deliveryZones = [
+  {
+    price: 2500,
+    locations: [
+      "Ikeja",
+    ],
+  },
+  {
+    price: 3000,
+    locations: [
+      "Ogba",
+    ],
+  },
+  {
+    price: 3500,
+    locations: [
+      "Amuwo Odofin",
+      "Ago Palace",
+      "Egbe",
+      "Ojokoro",
+      "Costain",
+      "Aguda Surulere",
+      "Ebutta Meta",
+      "Ipaja",
+      "Aboru",
+      "Ijaiye",
+      "Oworonshoki",
+      "Ijesha",
+      "Mile 2",
+      "Yaba",
+      "Mile 12",
+      "Ilupeju",
+      "Maryland",
+      "Olowoira",
+      "Magodo Phase 1 & 2",
+      "Omole Phase 1 & 2",
+      "Ketu",
+      "Agege",
+      "Anthony",
+      "Surulere",
+      "Shomolu",
+      "Obanikoro",
+      "Onipanu",
+      "Palmgroove",
+      "Oshodi",
+      "Shasha",
+      "Bariga",
+      "Isolo",
+      "Ogudu",
+      "Ojota",
+      "Mushin",
+      "Ikosi Ketu",
+      "Alapere",
+      "Ebutta Meta",
+      "Ijaiye",
+      "Iyanoworo",
+    ],
+  },
+  {
+    price: 5000,
+    locations: [
+      "Ishaga",
+      "Obawole",
+      "Alagbado",
+      "Egbe",
+      "Ijegun",
+      "Lagos Island",
+      "Unilag",
+      "Akoka",
+      "Ebutta Ero",
+      "Apapa",
+      "Ipaja",
+      "Idimu",
+      "Egbeda",
+      "Abule Egba",
+      "Command",
+      "Ejigbo",
+      "Gbagada",
+      "Isheri Olofin",
+      "Lekki Phase 1",
+      "Ejigbo",
+      "Ikotun",
+      "Fagba",
+      "Obawole",
+      "Meiran",
+      "Satellite Town",
+      "Abule Ado",
+      "Orile Iganmu",
+    ],
+  },
+  {
+    price: 5500,
+    locations: [
+      "Iyana-Oba",
+      "Lekki Phase 2",
+      "Ojodu Abiodun",
+      "Ilaje Ajah",
+      "Iyana-School",
+      "LBS",
+      "Olokonla",
+      "Ajah",
+      "Orchid",
+      "Thomas Estate",
+      "Ado Road",
+      "VGC",
+      "Ikate",
+      "Agungi",
+      "Lekki County",
+      "Banana Island",
+      "Victoria Island",
+      "Ikoyi",
+      "Oral Estate",
+      "Osapa London",
+      "Ebute Ero",
+    ],
+  },
+  {
+    price: 6000,
+    locations: [
+      "Tradefair",
+      "Igbo Elerin",
+      "Magbon",
+      "Alaba",
+      "Iyana School",
+      "Igbo Efon",
+      "Langbasa",
+      "Ibafo",
+    ],
+  },
+  {
+    price: 8000,
+    locations: [
+      "Awoyaya",
+      "Abijo",
+      "Ibeju Lekki",
+      "Badagry",
+      "Eputu",
+      "Eleko",
+      "Aradagun",
+    ],
+  },
+  {
+    price: 5000,
+    locations: [
+      "Ikorodu",
+      "Ogombo",
+      "Ojo",
+      "Iyana Ishashi",
+      "Ayobo",
+      "LASU",
+      "OPIC",
+    ],
+  },
+  {
+    price: 7000,
+    locations: [
+      "Lekki-Epe Expressway",
+      "Sangotedo",
+      "Agbara",
+      "Aradagun",
+      "Arepo",
+      "Apapa",
+      "Ajegunle",
+      "Okokomaiko",
+    ],
+  },
+  {
+    price: 3500,
+    locations: [
+      "Ojodu Berger",
+      "Kola",
+    ],
+  },
+  {
+    price: 10000,
+    locations: [
+      "Lakowe",
+    ],
+  },
+  {
+    price: 6000,
+    locations: [
+      "Ajah Eti-Osa",
+    ],
+  },
+  
+];
+
 export default function CheckoutPage() {
   const { cart, clearCart } = useCart();
 
@@ -16,6 +204,7 @@ export default function CheckoutPage() {
   address: "",
   city: "",
   state: "",
+  deliveryLocation: "",
   paymentReference: "",
 });
 
@@ -25,6 +214,22 @@ export default function CheckoutPage() {
       Number(item.price.replace(/[₦,]/g, "")) * item.quantity,
     0
   );
+
+ const selectedDeliveryIndex = form.deliveryLocation.startsWith("zone-")
+  ? Number(form.deliveryLocation.replace("zone-", ""))
+  : -1;
+
+const selectedDeliveryZone =
+  selectedDeliveryIndex >= 0
+    ? deliveryZones[selectedDeliveryIndex]
+    : undefined;
+
+const deliveryFee =
+  form.deliveryLocation === "pickup"
+    ? 0
+    : selectedDeliveryZone?.price || 0;
+
+const total = subtotal + deliveryFee; 
 
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -52,9 +257,9 @@ setOrderNumber(newOrderNumber);
   const message = `
 Hello IGBALODE BATA 👋
 
-Order Number: ${orderNumber}
+Order Number: ${newOrderNumber}
 
-I would like to place an order.
+I placed an order, kindly confirm.
 
 CUSTOMER DETAILS
 Name: ${form.name}
@@ -65,6 +270,13 @@ DELIVERY DETAILS
 Address: ${form.address}
 City: ${form.city}
 State: ${form.state}
+Delivery Option: ${
+  form.deliveryLocation === "pickup"
+    ? "Pickup"
+    : selectedDeliveryZone
+      ? `Delivery — ₦${selectedDeliveryZone.price.toLocaleString()}`
+      : "Not selected"
+}
 
 PAYMENT
 Method: Bank Transfer
@@ -74,8 +286,9 @@ ORDER
 ${orderItems}
 
 Subtotal: ₦${subtotal.toLocaleString()}
+Total: ₦${total.toLocaleString()}
 
-Please confirm my order and delivery fee. Thank you.
+Please confirm my order. Thank you.
   `.trim();
 
   const whatsappNumber = "2347082065518";
@@ -242,6 +455,103 @@ setOrderSent(true);
                 />
               </div>
 
+              <div className="mt-10">
+  <p className="text-[10px] font-semibold uppercase tracking-[0.2em]">
+    Delivery Location
+  </p>
+
+  <p className="mt-2 text-xs leading-5 text-[#77736b]">
+    Select the delivery price group that contains your location.
+  </p>
+
+  <div className="mt-5 space-y-3">
+    {deliveryZones.map((zone, index) => {
+      const selected = form.deliveryLocation === `zone-${index}`;
+
+      return (
+        <label
+          key={`${zone.price}-${index}`}
+          className={`block cursor-pointer border p-5 transition ${
+            selected
+              ? "border-[#171717] bg-[#eeece5]"
+              : "border-[#171717]/10 bg-transparent hover:border-[#171717]/30"
+          }`}
+        >
+          <div className="flex items-start gap-4">
+            <input
+              type="radio"
+              name="deliveryLocation"
+              value={`zone-${index}`}
+              checked={selected}
+              onChange={handleChange}
+              required
+              className="mt-1 h-4 w-4 accent-[#171717]"
+            />
+
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-4">
+                <p className="text-sm font-semibold">
+                  ₦{zone.price.toLocaleString()}
+                </p>
+
+                {selected && (
+                  <span className="text-[9px] font-semibold uppercase tracking-[0.15em]">
+                    Selected
+                  </span>
+                )}
+              </div>
+
+              <p className="mt-3 text-xs leading-6 text-[#77736b]">
+                {zone.locations.join("  ·  ")}
+              </p>
+            </div>
+          </div>
+        </label>
+      );
+    })}
+
+    {/* Pickup */}
+    <label
+      className={`block cursor-pointer border p-5 transition ${
+        form.deliveryLocation === "pickup"
+          ? "border-[#171717] bg-[#eeece5]"
+          : "border-[#171717]/10 bg-transparent hover:border-[#171717]/30"
+      }`}
+    >
+      <div className="flex items-start gap-4">
+        <input
+          type="radio"
+          name="deliveryLocation"
+          value="pickup"
+          checked={form.deliveryLocation === "pickup"}
+          onChange={handleChange}
+          className="mt-1 h-4 w-4 accent-[#171717]"
+        />
+
+        <div>
+          <div className="flex items-center gap-3">
+            <p className="text-sm font-semibold">
+              Pickup
+            </p>
+
+            <span className="text-sm font-semibold">
+              FREE
+            </span>
+          </div>
+
+          <p className="mt-3 text-xs leading-6 text-[#77736b]">
+            16 Adalemo Street, Oke Koto, Agege.
+            <br />
+            Monday - Friday · 10am - 6pm
+            <br />
+            07082065518
+          </p>
+        </div>
+      </div>
+    </label>
+  </div>
+</div>
+
               <div className="mt-10 border border-[#171717]/10 bg-[#eeece5] p-6 lg:p-7">
   <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#77736b]">
     Payment Method
@@ -305,7 +615,7 @@ setOrderSent(true);
   </p>
 
   <p className="mt-2 font-display text-2xl text-[#1c1b18]">
-    ₦{subtotal.toLocaleString()}
+    ₦{total.toLocaleString()}
   </p>
 </div>
     </div>
@@ -354,15 +664,39 @@ setOrderSent(true);
               ))}
             </div>
 
-            <div className="mt-7 flex justify-between border-t border-[#171717]/10 pt-6">
-              <span className="text-[10px] uppercase tracking-[0.18em]">
-                Subtotal
-              </span>
+            <div className="mt-7 border-t border-[#171717]/10 pt-6">
+  <div className="flex items-center justify-between">
+    <span className="text-[10px] uppercase tracking-[0.18em]">
+      Subtotal
+    </span>
 
-              <span className="font-medium">
-                ₦{subtotal.toLocaleString()}
-              </span>
-            </div>
+    <span className="text-sm">
+      ₦{subtotal.toLocaleString()}
+    </span>
+  </div>
+
+  <div className="mt-4 flex items-center justify-between text-sm">
+    <span className="text-[#77736b]">
+      Delivery
+    </span>
+
+    <span>
+      {deliveryFee > 0
+        ? `₦${deliveryFee.toLocaleString()}`
+        : "Select location"}
+    </span>
+  </div>
+
+  <div className="mt-5 flex items-center justify-between border-t border-[#171717]/10 pt-5">
+    <span className="text-[10px] font-semibold uppercase tracking-[0.18em]">
+      Total
+    </span>
+
+    <span className="font-display text-2xl">
+      ₦{total.toLocaleString()}
+    </span>
+  </div>
+</div>
 
             <p className="mt-5 text-xs leading-5 text-[#77736b]">
               Delivery charges will be confirmed based on your location.

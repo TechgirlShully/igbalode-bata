@@ -45,3 +45,28 @@ input {
 .font-display {
   font-family: "Playfair Display", serif;
 }
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button.bg-\[\#171717\],
+a.bg-\[\#171717\],
+button.bg-\[\#1c1b18\],
+a.bg-\[\#1c1b18\] {
+  color: #f5f3ee;
+}
+
+button.bg-black,
+a.bg-black {
+  color: #ffffff;
+}
+
+.bg-\[\#171717\] {
+  color: #f5f3ee;
+}
+
+.bg-\[\#1c1b18\] {
+  color: #f5f3ee;
+}

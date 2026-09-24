@@ -7,7 +7,8 @@ import { Heart, Search, SlidersHorizontal } from "lucide-react";
 import { motion } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 import { useWishlist } from "../context/WishlistContext";
-
+import { useCart } from "../context/CartContext";
+import { products as productDetails } from "./products";
 
 const products = [
   {
@@ -78,6 +79,7 @@ function ShopPageContent() {
   const searchQuery = searchParams.get("search")?.toLowerCase() || "";
 
   const { toggleWishlist, isWishlisted } = useWishlist();
+  const { addToCart } = useCart();
   const [filterOpen, setFilterOpen] = useState(false);
 
   const filteredProducts = products.filter((product) => {
@@ -303,13 +305,38 @@ if (!matchesSearch) {
   />
 </button>
 
-                  {/* View Product */}
-                  <Link
-                    href={`/shop/${product.id}`}
-                    className="absolute bottom-4 left-4 right-4 bg-[#171717] px-5 py-4 text-center text-[10px] font-semibold uppercase tracking-[0.18em] !text-[#f5f3ee] transition-all duration-500 sm:translate-y-3 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100"
-                  >
-                    View Product
-                  </Link>
+                  {/* Product Actions */}
+<div className="absolute bottom-4 left-4 right-4 flex gap-2 transition-all duration-500 sm:translate-y-3 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100">
+  <Link
+    href={`/shop/${product.id}`}
+    className="flex-1 bg-[#f5f3ee] px-4 py-4 text-center text-[10px] font-semibold uppercase tracking-[0.15em] text-[#171717] transition hover:bg-white"
+  >
+    View Product
+  </Link>
+
+  <button
+    type="button"
+    onClick={() => {
+      const details =
+        productDetails[String(product.id) as keyof typeof productDetails];
+
+      if (!details) return;
+
+      addToCart({
+        id: String(product.id),
+        name: details.name,
+        price: details.price,
+        image: details.colors[0].image,
+        color: details.colors[0].name,
+        size: details.sizes[0],
+        quantity: 1,
+      });
+    }}
+    className="flex-1 bg-[#171717] px-4 py-4 text-center text-[10px] font-semibold uppercase tracking-[0.15em] text-[#f5f3ee] transition hover:bg-[#33312d]"
+  >
+    Add to Bag
+  </button>
+</div>
                 </div>
 
                 {/* Details */}
