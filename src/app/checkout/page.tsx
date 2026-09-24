@@ -8,6 +8,7 @@ export default function CheckoutPage() {
   const { cart, clearCart } = useCart();
 
   const [orderSent, setOrderSent] = useState(false);
+  const [orderNumber, setOrderNumber] = useState("");
   const [form, setForm] = useState({
   name: "",
   phone: "",
@@ -37,6 +38,10 @@ export default function CheckoutPage() {
   const handleSubmit = (event: React.FormEvent) => {
   event.preventDefault();
 
+ const newOrderNumber = `IGB-${Date.now().toString().slice(-6)}`;
+
+setOrderNumber(newOrderNumber); 
+
   const orderItems = cart
     .map(
       (item) =>
@@ -46,6 +51,8 @@ export default function CheckoutPage() {
 
   const message = `
 Hello IGBALODE BATA 👋
+
+Order Number: ${orderNumber}
 
 I would like to place an order.
 
@@ -93,6 +100,10 @@ setOrderSent(true);
         <p className="mt-8 text-[10px] uppercase tracking-[0.3em] text-[#77736b]">
           Order Received
         </p>
+
+        <p className="mt-4 text-sm font-medium text-[#1c1b18]">
+  Order #{orderNumber}
+</p>
 
         <h1 className="mt-4 font-display text-5xl">
           Thank you for shopping with us.
@@ -287,15 +298,26 @@ setOrderSent(true);
   className="mt-6 w-full border-b border-[#171717]/15 bg-transparent px-0 py-4 text-sm outline-none placeholder:text-[#99958d] focus:border-[#171717]"
 />
       </div>
+
+      <div className="border-t border-[#171717]/10 pt-5">
+  <p className="text-[9px] uppercase tracking-[0.18em] text-[#77736b]">
+    Amount to Transfer
+  </p>
+
+  <p className="mt-2 font-display text-2xl text-[#1c1b18]">
+    ₦{subtotal.toLocaleString()}
+  </p>
+</div>
     </div>
   </div>
 </div>
+ 
 
               <button
                 type="submit"
                 className="mt-5 w-full bg-[#171717] px-6 py-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#f5f3ee] transition hover:bg-[#33312d]"
               >
-                Send Order on WhatsApp
+                I've Made the Transfer — Send Order
               </button>
             </form>
           </section>
