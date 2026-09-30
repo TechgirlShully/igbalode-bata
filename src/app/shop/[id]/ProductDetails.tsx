@@ -30,6 +30,7 @@ export default function ProductDetails({
   const { toggleWishlist, isWishlisted } = useWishlist();
 
   const currentImage = product.colors[selectedColor].image;
+  const [showSizeGuide, setShowSizeGuide] = useState(false);
 
   return (
     <main className="min-h-screen bg-[#f5f3ee] px-6 pb-20 pt-32 lg:px-12">
@@ -53,7 +54,7 @@ export default function ProductDetails({
               alt={product.name}
               fill
               priority
-              className="object-cover"
+              className="object-contain p-4 sm:p-6"
             />
           </div>
 
@@ -90,12 +91,12 @@ export default function ProductDetails({
                 </p>
               </div>
 
-              <div className="mt-4 flex gap-3">
+              <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
                 {product.colors.map((color, index) => (
                   <button
                     key={color.name}
                     onClick={() => setSelectedColor(index)}
-                    className={`relative h-16 w-16 overflow-hidden border ${
+                    className={`relative h-16 w-16 shrink-0 overflow-hidden border ${
                       selectedColor === index
                         ? "border-[#171717]"
                         : "border-transparent"
@@ -120,9 +121,26 @@ export default function ProductDetails({
                   Size
                 </p>
 
-                <button className="text-[10px] uppercase tracking-[0.15em] text-[#77736b] underline underline-offset-4">
-                  Size Guide
-                </button>
+                <button
+  type="button"
+  onClick={() => setShowSizeGuide((current) => !current)}
+  className="text-[10px] uppercase tracking-[0.15em] text-[#77736b] underline underline-offset-4"
+>
+  Size Guide
+</button>
+
+{showSizeGuide && (
+  <div className="mt-5 border border-[#171717]/10 bg-[#eeece5] p-5">
+    <p className="text-[10px] font-semibold uppercase tracking-[0.2em]">
+      Size Guide
+    </p>
+
+    <p className="mt-3 text-xs leading-6 text-[#77736b]">
+      Choose your usual footwear size. If you are between sizes, we recommend
+      selecting the larger size for a more comfortable fit.
+    </p>
+  </div>
+)}
               </div>
 
               <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-6">
@@ -150,20 +168,24 @@ export default function ProductDetails({
 
               <div className="flex h-12 w-32 items-center justify-between border border-[#171717]/15 px-3">
                 <button
-                  onClick={() =>
-                    setQuantity((current) => Math.max(1, current - 1))
-                  }
-                  aria-label="Decrease quantity"
-                >
+  type="button"
+  onClick={() =>
+    setQuantity((current) => Math.max(1, current - 1))
+  }
+  aria-label="Decrease quantity"
+  className="flex h-10 w-10 items-center justify-center"
+>
                   <Minus size={15} strokeWidth={1.5} />
                 </button>
 
                 <span className="text-sm">{quantity}</span>
 
                 <button
-                  onClick={() => setQuantity((current) => current + 1)}
-                  aria-label="Increase quantity"
-                >
+  type="button"
+  onClick={() => setQuantity((current) => current + 1)}
+  aria-label="Increase quantity"
+  className="flex h-10 w-10 items-center justify-center"
+>
                   <Plus size={15} strokeWidth={1.5} />
                 </button>
               </div>
@@ -228,8 +250,29 @@ export default function ProductDetails({
 </button> 
             </div>
 
-            {!selectedSize && (
-              <p className="mt-3 text-[10px] text-[#77736b]">
+{addedToBag && (
+  <div className="mt-4 flex items-center justify-between border border-[#171717]/10 bg-[#eeece5] px-4 py-4">
+    <div>
+      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#1c1b18]">
+        Added to your bag
+      </p>
+
+      <p className="mt-1 text-[10px] text-[#77736b]">
+        {product.name} · Size {selectedSize}
+      </p>
+    </div>
+
+    <a
+      href="/bag"
+      className="bg-[#171717] px-4 py-3 text-[9px] font-semibold uppercase tracking-[0.15em] !text-[#f5f3ee] transition hover:bg-[#33312d]"
+    >
+      View Bag
+    </a>
+  </div>
+)}
+
+{!selectedSize && (
+  <p className="mt-3 text-[10px] text-[#77736b]">
                 Select a size before adding this item to your bag.
               </p>
             )}

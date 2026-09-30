@@ -113,14 +113,24 @@ export default function BagPage() {
                             </p>
                           </div>
 
-                          <p className="text-xs font-medium text-[#1c1b18]">
-                            {item.price}
-                          </p>
+                          <div className="text-right">
+  <p className="text-xs font-medium text-[#1c1b18]">
+    ₦{(
+      Number(item.price.replace(/[₦,]/g, "")) * item.quantity
+    ).toLocaleString("en-NG")}
+  </p>
+
+  {item.quantity > 1 && (
+    <p className="mt-1 text-[9px] text-[#77736b]">
+      {item.price} × {item.quantity}
+    </p>
+  )}
+</div>
                         </div>
                       </div>
 
                       <div className="mt-5 flex items-center justify-between">
-                        <div className="flex h-10 items-center border border-[#171717]/15">
+                        <div className="flex h-10 items-center border border-[#171717]/15 bg-[#eeece5]" >
                           <button
                             onClick={() =>
                               updateQuantity(
@@ -130,8 +140,7 @@ export default function BagPage() {
                                 item.quantity - 1
                               )
                             }
-                            className="flex h-full w-9 items-center justify-center"
-                            aria-label="Decrease quantity"
+                            className="flex h-full w-10 items-center justify-center transition hover:bg-[#171717] hover:text-[#f5f3ee]"
                           >
                             <Minus size={13} strokeWidth={1.5} />
                           </button>
@@ -149,8 +158,7 @@ export default function BagPage() {
                                 item.quantity + 1
                               )
                             }
-                            className="flex h-full w-9 items-center justify-center"
-                            aria-label="Increase quantity"
+                            className="flex h-full w-10 items-center justify-center transition hover:bg-[#171717] hover:text-[#f5f3ee]"
                           >
                             <Plus size={13} strokeWidth={1.5} />
                           </button>
@@ -164,7 +172,7 @@ export default function BagPage() {
                               item.size
                             )
                           }
-                          className="flex items-center gap-2 text-[9px] uppercase tracking-[0.15em] text-[#77736b] transition hover:text-[#171717]"
+                          className="flex min-h-10 items-center gap-2 px-2 text-[9px] uppercase tracking-[0.15em] text-[#77736b] transition hover:text-[#171717]"
                         >
                           <Trash2 size={14} strokeWidth={1.5} />
                           Remove
@@ -212,6 +220,13 @@ export default function BagPage() {
   className="block w-full bg-[#171717] px-6 py-5 text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-[#f5f3ee] transition hover:bg-[#33312d]"
 >
   Checkout
+</Link>
+
+<Link
+  href="/shop"
+  className="mt-3 block w-full border border-[#171717]/15 px-6 py-5 text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-[#171717] transition hover:border-[#171717]"
+>
+  Continue Shopping
 </Link>
 
             

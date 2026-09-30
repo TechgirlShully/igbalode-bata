@@ -243,6 +243,16 @@ const total = subtotal + deliveryFee;
   const handleSubmit = (event: React.FormEvent) => {
   event.preventDefault();
 
+  if (!form.deliveryLocation) {
+  alert("Please select a delivery option.");
+  return;
+}
+
+if (!form.paymentReference.trim()) {
+  alert("Please enter your payment reference or transfer name.");
+  return;
+}
+
  const newOrderNumber = `IGB-${Date.now().toString().slice(-6)}`;
 
 setOrderNumber(newOrderNumber); 
@@ -253,6 +263,11 @@ setOrderNumber(newOrderNumber);
         `• ${item.name} — ${item.color} — Size ${item.size} — Qty: ${item.quantity}`
     )
     .join("\n");
+
+    if (cart.length === 0) {
+  alert("Your bag is empty.");
+  return;
+}
 
   const message = `
 Hello IGBALODE BATA 👋
@@ -310,22 +325,29 @@ setOrderSent(true);
           <span className="text-2xl">✓</span>
         </div>
 
-        <p className="mt-8 text-[10px] uppercase tracking-[0.3em] text-[#77736b]">
-          Order Received
-        </p>
-
-        <p className="mt-4 text-sm font-medium text-[#1c1b18]">
-  Order #{orderNumber}
+        <p className="mt-8 text-[10px] font-semibold uppercase tracking-[0.3em] text-[#77736b]">
+  Order Submitted
 </p>
 
-        <h1 className="mt-4 font-display text-5xl">
-          Thank you for shopping with us.
-        </h1>
+        <div className="mx-auto mt-5 inline-flex items-center border border-[#171717]/10 bg-[#eeece5] px-5 py-3">
+  <span className="text-[9px] uppercase tracking-[0.18em] text-[#77736b]">
+    Order
+  </span>
 
-        <p className="mx-auto mt-5 max-w-[440px] text-sm leading-6 text-[#68645d]">
-          Your order details have been sent to IGBALODE BATA on WhatsApp.
-          We&apos;ll confirm your payment and delivery details with you.
-        </p>
+  <span className="ml-3 text-sm font-semibold tracking-[0.08em] text-[#1c1b18]">
+    #{orderNumber}
+  </span>
+</div>
+
+        <h1 className="mt-4 font-display text-5xl leading-tight sm:text-6xl">
+  Your order is on its way.
+</h1>
+
+        <p className="mx-auto mt-5 max-w-[460px] text-sm leading-6 text-[#68645d]">
+  Your order details have been prepared and WhatsApp has been opened for
+  you to send your order to IGBALODE BATA. We&apos;ll confirm your payment
+  and delivery details with you once your message is received.
+</p>
 
         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
           <Link
@@ -394,10 +416,19 @@ setOrderSent(true);
               Your details
             </h1>
 
-            <form onSubmit={handleSubmit} className="mt-10 space-y-6">
+            <form onSubmit={handleSubmit} className="mt-10 space-y-8">
+  <div>
+    <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#77736b]">
+      Customer Information
+    </p>
+    <p className="mt-2 text-xs leading-5 text-[#77736b]">
+      Enter your details so we can contact you about your order.
+    </p>
+  </div>
               <div className="grid gap-6 sm:grid-cols-2">
                 <input
                   name="name"
+                  autoComplete="name"
                   value={form.name}
                   onChange={handleChange}
                   placeholder="Full Name"
@@ -407,6 +438,9 @@ setOrderSent(true);
 
                 <input
                   name="phone"
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
                   value={form.phone}
                   onChange={handleChange}
                   placeholder="Phone Number"
@@ -418,6 +452,7 @@ setOrderSent(true);
               <input
                 name="email"
                 type="email"
+                autoComplete="email"
                 value={form.email}
                 onChange={handleChange}
                 placeholder="Email Address"
@@ -427,6 +462,7 @@ setOrderSent(true);
 
               <textarea
                 name="address"
+                autoComplete="street-address"
                 value={form.address}
                 onChange={handleChange}
                 placeholder="Delivery Address"
@@ -438,6 +474,7 @@ setOrderSent(true);
               <div className="grid gap-6 sm:grid-cols-2">
                 <input
                   name="city"
+                  autoComplete="address-level2"
                   value={form.city}
                   onChange={handleChange}
                   placeholder="City"
@@ -447,6 +484,7 @@ setOrderSent(true);
 
                 <input
                   name="state"
+                  autoComplete="address-level1"
                   value={form.state}
                   onChange={handleChange}
                   placeholder="State"
@@ -502,8 +540,8 @@ setOrderSent(true);
               </div>
 
               <p className="mt-3 text-xs leading-6 text-[#77736b]">
-                {zone.locations.join("  ·  ")}
-              </p>
+  {zone.locations.join(" · ")}
+</p>
             </div>
           </div>
         </label>
@@ -520,13 +558,14 @@ setOrderSent(true);
     >
       <div className="flex items-start gap-4">
         <input
-          type="radio"
-          name="deliveryLocation"
-          value="pickup"
-          checked={form.deliveryLocation === "pickup"}
-          onChange={handleChange}
-          className="mt-1 h-4 w-4 accent-[#171717]"
-        />
+  type="radio"
+  name="deliveryLocation"
+  value="pickup"
+  checked={form.deliveryLocation === "pickup"}
+  onChange={handleChange}
+  required
+  className="mt-1 h-4 w-4 accent-[#171717]"
+/>
 
         <div>
           <div className="flex items-center gap-3">
@@ -599,11 +638,15 @@ setOrderSent(true);
         <p className="mt-1 text-sm font-medium">
           0000000000
         </p>
+        <p className="mt-5 text-xs leading-5 text-[#77736b]">
+  After making the transfer, enter the name used for the transfer or your
+  bank transaction reference below.
+</p>
         <input
   name="paymentReference"
   value={form.paymentReference}
   onChange={handleChange}
-  placeholder="Payment Reference / Transfer Name"
+  placeholder="Enter transfer name or payment reference"
   required
   className="mt-6 w-full border-b border-[#171717]/15 bg-transparent px-0 py-4 text-sm outline-none placeholder:text-[#99958d] focus:border-[#171717]"
 />
@@ -627,7 +670,7 @@ setOrderSent(true);
                 type="submit"
                 className="mt-5 w-full bg-[#171717] px-6 py-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#f5f3ee] transition hover:bg-[#33312d]"
               >
-                I've Made the Transfer — Send Order
+                I've Made the Transfer — Send My Order
               </button>
             </form>
           </section>
