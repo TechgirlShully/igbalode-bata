@@ -70,3 +70,36 @@ a.bg-black {
 .bg-\[\#1c1b18\] {
   color: #f5f3ee;
 }
+
+
+/* Mobile responsiveness */
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+img {
+  max-width: 100%;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+input,
+select,
+textarea {
+  max-width: 100%;
+}
+
+@media (max-width: 640px) {
+  section {
+    scroll-margin-top: 90px;
+  }
+}
