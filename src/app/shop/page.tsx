@@ -309,7 +309,7 @@ const filteredProducts = products.filter((product) => {
 <div className="relative aspect-[4/5] overflow-hidden bg-[#e8e3d9]">
   <Image
     src={product.image}
-    alt={product.name}
+    alt={`${product.name} - ${product.type} by IGBALODE BATA`}
     fill
     className="object-cover transition-transform duration-700 group-hover:scale-105"
   />

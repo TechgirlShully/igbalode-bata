@@ -1,12 +1,72 @@
+
+import type { Metadata } from "next";
 import Link from "next/link";
 import ProductDetails from "./ProductDetails";
 import { products } from "../products";
 
+const siteUrl = "https://igbalode-bata.vercel.app";
+
+type PageProps = {
+  params: Promise<{ id: string }>;
+};
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { id } = await params;
+  const product = products[id as keyof typeof products];
+
+  if (!product) {
+    return {
+      title: "Product Not Found",
+      description: "Explore the footwear collection at IGBALODE BATA.",
+    };
+  }
+
+  const title = `${product.name} ${product.category} | IGBALODE BATA`;
+
+  const description =
+    `${product.description} Available in sizes ${product.sizes.join(", ")}. ` +
+    `Price: ${product.price}. Shop online at IGBALODE BATA, Nigeria.`;
+
+  const image = product.colors[0]?.image;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `/shop/${id}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `${siteUrl}/shop/${id}`,
+      siteName: "IGBALODE BATA",
+      locale: "en_NG",
+      type: "website",
+      ...(image
+        ? {
+            images: [
+              {
+                url: image,
+                alt: `${product.name} - ${product.category}`,
+              },
+            ],
+          }
+        : {}),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      ...(image ? { images: [image] } : {}),
+    },
+  };
+}
+
 export default async function ProductPage({
   params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+}: PageProps) {
   const { id } = await params;
 
   const product = products[id as keyof typeof products];

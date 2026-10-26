@@ -10,11 +10,20 @@ const shopLinks = [
   { name: "Bags", href: "#bags" },
 ];
 
+
 const companyLinks = [
   { name: "Our Story", href: "#about" },
-  { name: "Contact", href: "#contact" },
+  { name: "Contact", href: "/contact" },
   { name: "FAQs", href: "#faq" },
 ];
+
+const policyLinks = [
+  { name: "Delivery Information", href: "/delivery" },
+  { name: "Returns & Exchanges", href: "/returns-exchanges" },
+  { name: "Privacy Policy", href: "/privacy-policy" },
+  { name: "Terms & Conditions", href: "/terms-and-conditions" },
+];
+
 
 export default function Footer() {
   return (
@@ -22,7 +31,9 @@ export default function Footer() {
       <div className="mx-auto max-w-[1440px]">
 
         {/* Main footer */}
-        <div className="grid gap-16 border-b border-[#f5f3ee]/10 pb-16 lg:grid-cols-[1.5fr_1fr_1fr_1.2fr]">
+        
+<div className="grid gap-12 border-b border-[#f5f3ee]/10 pb-16 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr_1.2fr]">
+
 
           {/* Brand */}
           <div>
@@ -92,6 +103,27 @@ export default function Footer() {
             </nav>
           </div>
 
+          
+{/* Customer Care */}
+<div>
+  <p className="mb-6 text-[9px] font-semibold uppercase tracking-[0.3em] text-[#77736b]">
+    Customer Care
+  </p>
+
+  <nav className="flex flex-col gap-4">
+    {policyLinks.map((link) => (
+      <a
+        key={link.name}
+        href={link.href}
+        className="w-fit text-sm text-[#aaa69d] transition-colors hover:text-[#f5f3ee]"
+      >
+        {link.name}
+      </a>
+    ))}
+  </nav>
+</div>
+
+
           {/* Contact */}
           <div>
             <p className="mb-6 text-[9px] font-semibold uppercase tracking-[0.3em] text-[#77736b]">
@@ -133,15 +165,21 @@ export default function Footer() {
         <div className="flex flex-col justify-between gap-5 border-t border-[#f5f3ee]/10 pt-6 text-[9px] uppercase tracking-[0.2em] text-[#77736b] sm:flex-row">
           <p>© {new Date().getFullYear()} Igbalode Bata. All rights reserved.</p>
 
-          <div className="flex gap-6">
-            <a href="#" className="hover:text-[#f5f3ee]">
-              Privacy Policy
-            </a>
+          
+<div className="flex flex-wrap gap-x-6 gap-y-3">
+  <a href="/privacy-policy" className="hover:text-[#f5f3ee]">
+    Privacy Policy
+  </a>
 
-            <a href="#" className="hover:text-[#f5f3ee]">
-              Terms & Conditions
-            </a>
-          </div>
+  <a href="/terms-and-conditions" className="hover:text-[#f5f3ee]">
+    Terms & Conditions
+  </a>
+
+  <a href="/contact" className="hover:text-[#f5f3ee]">
+    Contact
+  </a>
+</div>
+
         </div>
       </div>
     </footer>
