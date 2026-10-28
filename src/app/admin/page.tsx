@@ -34,36 +34,7 @@ const navigation = [
   { name: "Settings", icon: Settings },
 ];
 
-const stats = [
-  {
-    label: "Total Revenue",
-    value: "₦485,000",
-    change: "+12.8%",
-    positive: true,
-    icon: CreditCard,
-  },
-  {
-    label: "Total Orders",
-    value: "24",
-    change: "+8.2%",
-    positive: true,
-    icon: ShoppingBag,
-  },
-  {
-    label: "Products",
-    value: "6",
-    change: "Active catalogue",
-    positive: true,
-    icon: Package,
-  },
-  {
-    label: "Low Stock",
-    value: "2",
-    change: "Needs attention",
-    positive: false,
-    icon: Boxes,
-  },
-];
+
 
 const orders = [
   {
@@ -174,8 +145,10 @@ export default function AdminPage() {
   const [activePage, setActivePage] = useState("Overview");
   const [search, setSearch] = useState("");
   const [mobileMenu, setMobileMenu] = useState(false);
+ const [products, setProducts] = useState<Product[]>(initialProducts); 
   const [ordersState, setOrdersState] = useState(orders);
-const [ordersLoaded, setOrdersLoaded] = useState(false);
+  const [ordersLoaded, setOrdersLoaded] = useState(false);
+  const [orderStatusFilter, setOrderStatusFilter] = useState("All");
 
  const emptyProductForm = {
   name: "",
@@ -188,7 +161,6 @@ const [ordersLoaded, setOrdersLoaded] = useState(false);
   description: "",
 };
 
-const [products, setProducts] = useState<Product[]>(initialProducts);
 const [productsLoaded, setProductsLoaded] = useState(false);
 
 useEffect(() => {
@@ -248,7 +220,8 @@ useEffect(() => {
 }, [products, productsLoaded]);
 const [productFormOpen, setProductFormOpen] = useState(false);
 const [editingProductId, setEditingProductId] = useState<string | null>(null);
-const [productForm, setProductForm] = useState(emptyProductForm); 
+const [productForm, setProductForm] = useState(emptyProductForm);
+const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null); 
 
   const filteredProducts = products.filter((product) =>
     `${product.name} ${product.category}`
@@ -256,11 +229,22 @@ const [productForm, setProductForm] = useState(emptyProductForm);
       .includes(search.toLowerCase())
   );
 
-  const filteredOrders = ordersState.filter((order) =>
-  [order.id, order.customer, order.product, order.status].some((value) =>
+  const filteredOrders = ordersState.filter((order) => {
+  const matchesSearch = [
+    order.id,
+    order.customer,
+    order.product,
+    order.status,
+  ].some((value) =>
     value.toLowerCase().includes(search.toLowerCase())
-  )
-);
+  );
+
+  const matchesStatus =
+    orderStatusFilter === "All" ||
+    order.status === orderStatusFilter;
+
+  return matchesSearch && matchesStatus;
+});
 
   const lowStock = products.filter((product) => product.stock <= 3);
 
@@ -364,6 +348,109 @@ const updateOrderStatus = (
     )
   );
 };
+
+
+type Customer = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  orders: number;
+  totalSpent: number;
+};
+
+const initialCustomers: Customer[] = [
+  {
+    id: "CUS-001",
+    name: "Adebayo Johnson",
+    email: "adebayo@example.com",
+    phone: "08012345678",
+    orders: 3,
+    totalSpent: 155000,
+  },
+  {
+    id: "CUS-002",
+    name: "Tomi Adeyemi",
+    email: "tomi@example.com",
+    phone: "08023456789",
+    orders: 2,
+    totalSpent: 90000,
+  },
+  {
+    id: "CUS-003",
+    name: "Kemi Williams",
+    email: "kemi@example.com",
+    phone: "08034567890",
+    orders: 1,
+    totalSpent: 35000,
+  },
+];
+
+const [customers] = useState<Customer[]>(initialCustomers);
+const [customerSearch, setCustomerSearch] = useState("");
+const [selectedCustomerId, setSelectedCustomerId] =
+  useState<string | null>(null);
+
+const filteredCustomers = customers.filter((customer) =>
+  `${customer.name} ${customer.email} ${customer.phone} ${customer.id}`
+    .toLowerCase()
+    .includes(customerSearch.toLowerCase())
+);
+
+const selectedCustomer = customers.find(
+  (customer) => customer.id === selectedCustomerId
+);
+
+
+const totalRevenue = ordersState
+  .filter((order) => order.status !== "Cancelled")
+  .reduce((sum, order) => {
+    const amount = Number(
+      String(order.amount).replace(/[₦,\s]/g, "")
+    );
+    return sum + (Number.isFinite(amount) ? amount : 0);
+  }, 0);
+
+const totalOrders = ordersState.filter(
+  (order) => order.status !== "Cancelled"
+).length;
+
+const totalProducts = products.length;
+
+const lowStockCount = products.filter(
+  (product) => product.stock <= 3
+).length;
+
+const stats = [
+  {
+    label: "Total Revenue",
+    value: `₦${totalRevenue.toLocaleString("en-NG")}`,
+    change: "From current orders",
+    positive: true,
+    icon: CreditCard,
+  },
+  {
+    label: "Total Orders",
+    value: String(totalOrders),
+    change: "Non-cancelled orders",
+    positive: true,
+    icon: ShoppingBag,
+  },
+  {
+    label: "Products",
+    value: String(totalProducts),
+    change: "Current catalogue",
+    positive: true,
+    icon: Package,
+  },
+  {
+    label: "Low Stock",
+    value: String(lowStockCount),
+    change: lowStockCount > 0 ? "Needs attention" : "Stock looks good",
+    positive: lowStockCount === 0,
+    icon: Boxes,
+  },
+];
 
 
 
@@ -492,6 +579,7 @@ const updateOrderStatus = (
         </header>
 
         <div className="px-5 py-7 sm:px-8 sm:py-9 lg:px-10">
+
           {activePage === "Overview" && (
             <>
               <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
@@ -540,31 +628,100 @@ const updateOrderStatus = (
                       <p className="mt-5 font-display text-3xl">
                         {stat.value}
                       </p>
-                      <div className="mt-3 flex items-center gap-1.5 text-[10px]">
-                        {index < 2 ? (
-                          <ArrowUpRight size={13} className="text-emerald-700" />
-                        ) : index === 3 ? (
-                          <ArrowDownRight size={13} className="text-amber-700" />
-                        ) : null}
-                        <span
-                          className={
-                            index < 2
-                              ? "text-emerald-800"
-                              : index === 3
-                                ? "text-amber-800"
-                                : "text-[#77736b]"
-                          }
-                        >
-                          {stat.change}
-                        </span>
-                        {index < 2 && (
-                          <span className="text-[#77736b]">this month</span>
-                        )}
-                      </div>
+                      
+<div className="mt-3 flex items-center gap-1.5 text-[10px]">
+  {stat.label === "Low Stock" && lowStockCount > 0 && (
+    <ArrowDownRight size={13} className="text-amber-700" />
+  )}
+
+  <span
+    className={
+      stat.label === "Low Stock" && lowStockCount > 0
+        ? "text-amber-800"
+        : "text-[#77736b]"
+    }
+  >
+    {stat.change}
+  </span>
+</div>
+
                     </div>
                   );
                 })}
               </div>
+
+              
+<div className="mt-8 border border-black/10 bg-white/60">
+  <div className="flex flex-col justify-between gap-3 border-b border-black/10 p-5 sm:flex-row sm:items-center sm:px-6">
+    <div>
+      <h3 className="font-display text-xl">Recent orders</h3>
+      <p className="mt-1 text-xs text-[#77736b]">
+        A quick look at your latest orders.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      onClick={() => setActivePage("Orders")}
+      className="border border-black/15 px-4 py-3 text-[10px] font-semibold uppercase tracking-widest hover:bg-[#f5f3ee]"
+    >
+      View all orders
+    </button>
+  </div>
+
+  <div className="overflow-x-auto">
+    <table className="w-full min-w-[600px] text-left">
+      <thead>
+        <tr className="border-b border-black/10 text-[9px] uppercase tracking-widest text-[#77736b]">
+          <th className="px-6 py-4 font-medium">Order</th>
+          <th className="px-4 py-4 font-medium">Customer</th>
+          <th className="px-4 py-4 font-medium">Product</th>
+          <th className="px-4 py-4 font-medium">Amount</th>
+          <th className="px-4 py-4 font-medium">Status</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {ordersState.slice(0, 5).map((order) => (
+          <tr key={order.id} className="border-b border-black/5">
+            <td className="px-6 py-5 text-xs font-medium">
+              {order.id}
+              <p className="mt-1 text-[10px] font-normal text-[#77736b]">
+                {order.date}
+              </p>
+            </td>
+
+            <td className="px-4 py-5 text-xs">{order.customer}</td>
+
+            <td className="px-4 py-5 text-xs">{order.product}</td>
+
+            <td className="px-4 py-5 text-xs font-medium">
+              {order.amount}
+            </td>
+
+            <td className="px-4 py-5">
+              <span
+                className={`inline-block px-2.5 py-1.5 text-[10px] ${
+                  statusStyles[order.status] ??
+                  "bg-gray-100 text-gray-700"
+                }`}
+              >
+                {order.status}
+              </span>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+
+    {ordersState.length === 0 && (
+      <p className="p-8 text-center text-xs text-[#77736b]">
+        No orders to display yet.
+      </p>
+    )}
+  </div>
+</div>
+
 
               <div className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-[1.6fr_1fr]">
                 <section className="min-w-0 border border-black/10 bg-white/60">
@@ -824,6 +981,7 @@ const updateOrderStatus = (
           )}
 
           {activePage === "Orders" && (
+            <>
             <section className="border border-black/10 bg-white/60">
               <div className="border-b border-black/10 p-5 sm:px-6">
                 <h2 className="font-display text-2xl">All orders</h2>
@@ -841,6 +999,28 @@ const updateOrderStatus = (
                     className="w-full bg-transparent py-3 text-xs outline-none"
                   />
                 </div>
+                <div className="mt-3">
+  <label
+    htmlFor="order-status-filter"
+    className="mb-2 block text-[10px] uppercase tracking-[0.12em] text-[#77736b]"
+  >
+    Filter by status
+  </label>
+
+  <select
+    id="order-status-filter"
+    value={orderStatusFilter}
+    onChange={(event) => setOrderStatusFilter(event.target.value)}
+    className="w-full max-w-md border border-black/10 bg-[#f5f3ee] px-3 py-3 text-xs outline-none focus:border-black"
+  >
+    <option value="All">All statuses</option>
+    <option value="Pending">Pending</option>
+    <option value="Processing">Processing</option>
+    <option value="Shipped">Shipped</option>
+    <option value="Delivered">Delivered</option>
+    <option value="Cancelled">Cancelled</option>
+  </select>
+</div>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[650px] text-left">
@@ -851,6 +1031,7 @@ const updateOrderStatus = (
                       <th className="px-4 py-4 font-medium">Product</th>
                       <th className="px-4 py-4 font-medium">Amount</th>
                       <th className="px-4 py-4 font-medium">Status</th>
+                      <th className="px-4 py-4 font-medium">Details</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -885,6 +1066,15 @@ const updateOrderStatus = (
 </select>
 
                         </td>
+                       <td className="px-4 py-5">
+  <button
+    type="button"
+    onClick={() => setSelectedOrderId(order.id)}
+    className="border border-black/15 px-3 py-2 text-[10px] uppercase tracking-[0.1em] hover:bg-[#f5f3ee]"
+  >
+    View
+  </button>
+</td> 
                       </tr>
                     ))}
                   </tbody>
@@ -896,7 +1086,74 @@ const updateOrderStatus = (
                 )}
               </div>
             </section>
-          )}
+
+          
+{selectedOrderId && (
+  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
+    <div className="w-full max-w-lg border border-black/10 bg-[#f5f3ee] p-6 shadow-2xl">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[9px] uppercase tracking-[0.2em] text-[#77736b]">
+            IGBALODE BATA / ORDER DETAILS
+          </p>
+          <h3 className="mt-2 font-display text-2xl">
+            {ordersState.find((order) => order.id === selectedOrderId)?.id}
+          </h3>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setSelectedOrderId(null)}
+          className="border border-black/15 px-3 py-2 text-xs hover:bg-white"
+        >
+          Close
+        </button>
+      </div>
+
+      {ordersState
+        .filter((order) => order.id === selectedOrderId)
+        .map((order) => (
+          <div key={order.id} className="mt-6 space-y-4 text-xs">
+            <div className="border-b border-black/10 pb-3">
+              <p className="text-[10px] text-[#77736b]">Customer</p>
+              <p className="mt-1 font-medium">{order.customer}</p>
+            </div>
+
+            <div className="border-b border-black/10 pb-3">
+              <p className="text-[10px] text-[#77736b]">Product</p>
+              <p className="mt-1 font-medium">{order.product}</p>
+            </div>
+
+            <div className="border-b border-black/10 pb-3">
+              <p className="text-[10px] text-[#77736b]">Order amount</p>
+              <p className="mt-1 font-medium">{order.amount}</p>
+            </div>
+
+            <div className="border-b border-black/10 pb-3">
+              <p className="text-[10px] text-[#77736b]">Order date</p>
+              <p className="mt-1 font-medium">{order.date}</p>
+            </div>
+
+            <div>
+              <p className="text-[10px] text-[#77736b]">Current status</p>
+              <p className="mt-1 font-medium">{order.status}</p>
+            </div>
+          </div>
+        ))}
+
+      <button
+        type="button"
+        onClick={() => setSelectedOrderId(null)}
+        className="mt-7 w-full bg-[#171717] px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-white hover:bg-[#33312d]"
+      >
+        Done
+      </button>
+    </div>
+  </div>
+)}  
+    </>
+           )}
+ 
 
           {activePage === "Inventory" && (
             <section className="border border-black/10 bg-white/60">
@@ -967,16 +1224,169 @@ const updateOrderStatus = (
             </section>
           )}
 
-          {activePage === "Customers" && (
-            <section className="border border-black/10 bg-white/60 p-8 sm:p-12">
-              <Users size={28} strokeWidth={1.3} />
-              <h2 className="mt-5 font-display text-2xl">Customer management</h2>
-              <p className="mt-3 max-w-lg text-sm leading-7 text-[#77736b]">
-                Customer records will appear here once we connect secure
-                order storage. No real customer data is used in this demo.
+          
+{activePage === "Customers" && (
+  <section className="border border-black/10 bg-white/60">
+    <div className="border-b border-black/10 p-5 sm:px-6">
+      <h2 className="font-display text-2xl">
+        Customer management
+      </h2>
+      <p className="mt-1 text-xs text-[#77736b]">
+        Browse and review customer records.
+      </p>
+    </div>
+
+    <div className="grid gap-3 border-b border-black/10 p-5 sm:grid-cols-3">
+      <div className="bg-[#f5f3ee] p-4">
+        <p className="text-[10px] uppercase tracking-widest text-[#77736b]">
+          Total customers
+        </p>
+        <p className="mt-2 font-display text-2xl">
+          {customers.length}
+        </p>
+      </div>
+
+      <div className="bg-[#f5f3ee] p-4">
+        <p className="text-[10px] uppercase tracking-widest text-[#77736b]">
+          Total orders
+        </p>
+        <p className="mt-2 font-display text-2xl">
+          {customers.reduce((sum, customer) => sum + customer.orders, 0)}
+        </p>
+      </div>
+
+      <div className="bg-[#f5f3ee] p-4">
+        <p className="text-[10px] uppercase tracking-widest text-[#77736b]">
+          Customer spending
+        </p>
+        <p className="mt-2 font-display text-2xl">
+          ₦{customers
+            .reduce((sum, customer) => sum + customer.totalSpent, 0)
+            .toLocaleString("en-NG")}
+        </p>
+      </div>
+    </div>
+
+    <div className="p-4 sm:px-6">
+      <input
+        value={customerSearch}
+        onChange={(event) => setCustomerSearch(event.target.value)}
+        placeholder="Search by name, email, phone or ID..."
+        className="w-full max-w-lg border border-black/10 bg-[#f5f3ee] px-4 py-3 text-xs outline-none focus:border-black"
+      />
+    </div>
+
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[650px] text-left">
+        <thead>
+          <tr className="border-y border-black/10 text-[9px] uppercase tracking-widest text-[#77736b]">
+            <th className="px-6 py-4 font-medium">Customer</th>
+            <th className="px-4 py-4 font-medium">Contact</th>
+            <th className="px-4 py-4 font-medium">Orders</th>
+            <th className="px-4 py-4 font-medium">Total spent</th>
+            <th className="px-4 py-4 font-medium">Details</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {filteredCustomers.map((customer) => (
+            <tr key={customer.id} className="border-b border-black/5">
+              <td className="px-6 py-5 text-xs font-medium">
+                {customer.name}
+                <p className="mt-1 text-[10px] font-normal text-[#77736b]">
+                  {customer.id}
+                </p>
+              </td>
+
+              <td className="px-4 py-5 text-xs">
+                {customer.email}
+                <p className="mt-1 text-[10px] text-[#77736b]">
+                  {customer.phone}
+                </p>
+              </td>
+
+              <td className="px-4 py-5 text-xs">
+                {customer.orders}
+              </td>
+
+              <td className="px-4 py-5 text-xs font-medium">
+                ₦{customer.totalSpent.toLocaleString("en-NG")}
+              </td>
+
+              <td className="px-4 py-5">
+                <button
+                  type="button"
+                  onClick={() => setSelectedCustomerId(customer.id)}
+                  className="border border-black/15 px-3 py-2 text-[10px] uppercase tracking-wider hover:bg-[#f5f3ee]"
+                >
+                  View
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {filteredCustomers.length === 0 && (
+        <p className="p-8 text-center text-xs text-[#77736b]">
+          No matching customers found.
+        </p>
+      )}
+    </div>
+
+    {selectedCustomer && (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
+        <div className="w-full max-w-md border border-black/10 bg-[#f5f3ee] p-6 shadow-2xl">
+          <p className="text-[9px] uppercase tracking-widest text-[#77736b]">
+            IGBALODE BATA / CUSTOMER DETAILS
+          </p>
+
+          <h3 className="mt-3 font-display text-2xl">
+            {selectedCustomer.name}
+          </h3>
+
+          <div className="mt-6 space-y-4 text-xs">
+            <div className="border-b border-black/10 pb-3">
+              <p className="text-[#77736b]">Customer ID</p>
+              <p className="mt-1">{selectedCustomer.id}</p>
+            </div>
+
+            <div className="border-b border-black/10 pb-3">
+              <p className="text-[#77736b]">Email</p>
+              <p className="mt-1">{selectedCustomer.email}</p>
+            </div>
+
+            <div className="border-b border-black/10 pb-3">
+              <p className="text-[#77736b]">Phone</p>
+              <p className="mt-1">{selectedCustomer.phone}</p>
+            </div>
+
+            <div className="border-b border-black/10 pb-3">
+              <p className="text-[#77736b]">Total orders</p>
+              <p className="mt-1">{selectedCustomer.orders}</p>
+            </div>
+
+            <div>
+              <p className="text-[#77736b]">Total spent</p>
+              <p className="mt-1 font-medium">
+                ₦{selectedCustomer.totalSpent.toLocaleString("en-NG")}
               </p>
-            </section>
-          )}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setSelectedCustomerId(null)}
+            className="mt-7 w-full bg-[#171717] px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-white hover:bg-[#33312d]"
+          >
+            Close details
+          </button>
+        </div>
+      </div>
+    )}
+  </section>
+)}
+
 
           {activePage === "Settings" && (
             <section className="border border-black/10 bg-white/60 p-8 sm:p-12">
