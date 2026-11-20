@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { ArrowUpRight, Heart } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -48,8 +49,8 @@ export default function FeaturedProducts() {
             </h2>
           </div>
 
-          <a
-            href="#shop"
+          <Link
+            href="/shop"
             className="group inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#171717]"
           >
             View all
@@ -58,7 +59,7 @@ export default function FeaturedProducts() {
               strokeWidth={1.5}
               className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
             />
-          </a>
+          </Link>
         </div>
 
         {/* Products */}
@@ -97,11 +98,14 @@ export default function FeaturedProducts() {
                 </button>
 
                 {/* Quick view */}
-                <div className="absolute bottom-0 left-0 right-0 translate-y-full bg-[#171717] px-5 py-4 text-center transition-transform duration-500 group-hover:translate-y-0">
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#f5f3ee]">
-                    View product
-                  </span>
-                </div>
+<Link
+  href="/shop"
+  className="absolute bottom-0 left-0 right-0 translate-y-full bg-[#171717] px-5 py-4 text-center transition-transform duration-500 group-hover:translate-y-0"
+>
+  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#f5f3ee]">
+    View product
+  </span>
+</Link>
               </div>
 
               {/* Details */}

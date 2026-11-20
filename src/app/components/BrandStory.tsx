@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -81,18 +82,18 @@ export default function BrandStory() {
               </p>
             </div>
 
-            <a
-              href="#shop"
-              className="group mt-10 inline-flex items-center gap-4 border-b border-[#f5f3ee]/30 pb-3 text-[10px] font-semibold uppercase tracking-[0.2em] transition-colors duration-300 hover:border-[#f5f3ee]"
-            >
-              Discover our collection
+            <Link
+  href="/shop"
+  className="group mt-10 inline-flex items-center gap-4 border-b border-[#f5f3ee]/30 pb-3 text-[10px] font-semibold uppercase tracking-[0.2em] transition-colors duration-300 hover:border-[#f5f3ee]"
+>
+  Discover our collection
 
-              <ArrowUpRight
-                size={15}
-                strokeWidth={1.4}
-                className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
-              />
-            </a>
+  <ArrowUpRight
+    size={15}
+    strokeWidth={1.4}
+    className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
+  />
+</Link>
           </motion.div>
         </div>
 

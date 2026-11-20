@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { ArrowUpRight, Heart, ShoppingBag } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -134,17 +135,17 @@ export default function BestSellers() {
 
         {/* Bottom link */}
         <div className="mt-14 flex justify-center">
-          <a
-            href="#shop"
-            className="group inline-flex items-center gap-4 border-b border-[#171717]/30 pb-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#171717] transition-colors hover:border-[#171717]"
-          >
-            Explore all footwear
-            <ArrowUpRight
-              size={15}
-              strokeWidth={1.4}
-              className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
-            />
-          </a>
+          <Link
+  href="/shop"
+  className="group inline-flex items-center gap-4 border-b border-[#171717]/30 pb-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#171717] transition-colors hover:border-[#171717]"
+>
+  Explore all footwear
+  <ArrowUpRight
+    size={15}
+    strokeWidth={1.4}
+    className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
+  />
+</Link>
         </div>
       </div>
     </section>

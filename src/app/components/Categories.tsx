@@ -9,25 +9,25 @@ const categories = [
     name: "Women",
     description: "Footwear made for every side of you.",
     image: "/categories/women.jpg",
-    href: "#women",
+    href: "/shop",
   },
   {
     name: "Men",
     description: "Executive men's shoe with a modern edge.",
     image: "/categories/men.jpg",
-    href: "#men",
+    href: "/shop",
   },
   {
     name: "Kids",
     description: "Little steps, beautifully made.",
     image: "/categories/kids.jpg",
-    href: "#kids",
+    href: "/shop",
   },
   {
     name: "Bags",
     description: "The finishing touch to every look.",
     image: "/categories/bags.jpg",
-    href: "#bags",
+    href: "/shop",
   },
 ];
 

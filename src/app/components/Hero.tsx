@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 
@@ -39,8 +40,8 @@ export default function Hero() {
           </p>
 
           <div className="mt-9 flex flex-wrap gap-3">
-           <a
-  href="#shop"
+           <Link
+  href="/shop"
   className="group inline-flex items-center gap-4 bg-[#171717] px-7 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] !text-[#f5f3ee] transition-all duration-300 hover:bg-[#33312d]"
 >
   <span className="!text-[#f5f3ee]">Shop Collection</span>
@@ -50,7 +51,7 @@ export default function Hero() {
     strokeWidth={1.5}
     className="!text-[#f5f3ee] transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
   />
-</a>
+</Link>
 
             <a
               href="#about"
