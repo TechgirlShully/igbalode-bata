@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useCart } from "@/app/context/CartContext";
+import { useState } from "react";
 import { ArrowUpRight, Heart, ShoppingBag } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -9,6 +11,9 @@ const products = [
   {
     name: "The Ademola",
     category: "Men's Mule",
+    id: "1",
+    colors: [{ name: "Wine" }],
+    sizes: ["40", "41", "42", "43", "44", "45"],
     price: "₦55,000",
     images: [
       "/products/men/ademola.jpg",
@@ -22,6 +27,9 @@ const products = [
   {
     name: "The Abefe",
     category: "Men's Half Shoe",
+    id: "3",
+    colors: [{ name: "Black" }],
+    sizes: ["40", "41", "42", "43", "44", "45"],
     price: "₦45,000",
     images: [
       "/products/men/abefe.jpg",
@@ -31,6 +39,9 @@ const products = [
   {
     name: "The Adunni",
     category: "Women's Party Shoe",
+    id: "2",
+    colors: [{ name: "Wine" }],
+    sizes: ["36", "37", "38", "39", "40", "41"],
     price: "₦35,000",
     images: [
       "/products/women/adunni.jpg",
@@ -40,6 +51,8 @@ const products = [
 ];
 
 export default function BestSellers() {
+  const { addToCart } = useCart();
+const [addedProduct, setAddedProduct] = useState<string | null>(null);
   return (
     <section className="bg-[#f5f3ee] px-6 py-24 lg:px-12 lg:py-32">
       <div className="mx-auto max-w-[1440px]">
@@ -107,10 +120,30 @@ export default function BestSellers() {
                 </button>
 
                 {/* Add to bag */}
-                <button className="absolute bottom-5 left-5 right-5 flex translate-y-3 items-center justify-center gap-3 bg-[#171717] py-4 text-[10px] font-semibold uppercase tracking-[0.2em] !text-[#f5f3ee] opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">
-                  <ShoppingBag size={15} strokeWidth={1.4} />
-                  <span className="!text-[#f5f3ee]">Add to bag</span>
-                </button>
+                {/* Add to bag */}
+<button
+  onClick={() => {
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.images[0],
+      color: product.colors[0].name,
+      size: product.sizes[0],
+      quantity: 1,
+    });
+
+    setAddedProduct(product.id);
+
+    setTimeout(() => {
+      setAddedProduct(null);
+    }, 2000);
+  }}
+  className="absolute bottom-5 left-5 right-5 flex items-center justify-center gap-2 bg-[#171717] px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-white transition-all duration-300 hover:bg-[#73706a]"
+>
+  <ShoppingBag size={15} strokeWidth={1.5} />
+  {addedProduct === product.id ? "Added to Bag ✓" : "Add to Bag"}
+</button>
               </div>
 
               {/* Product details */}

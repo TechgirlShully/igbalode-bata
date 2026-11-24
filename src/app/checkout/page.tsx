@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -7,15 +8,11 @@ import { useCart } from "../context/CartContext";
 const deliveryZones = [
   {
     price: 2500,
-    locations: [
-      "Ikeja",
-    ],
+    locations: ["Ikeja"],
   },
   {
     price: 3000,
-    locations: [
-      "Ogba",
-    ],
+    locations: ["Ogba"],
   },
   {
     price: 3500,
@@ -172,24 +169,16 @@ const deliveryZones = [
   },
   {
     price: 3500,
-    locations: [
-      "Ojodu Berger",
-      "Kola",
-    ],
+    locations: ["Ojodu Berger", "Kola"],
   },
   {
     price: 10000,
-    locations: [
-      "Lakowe",
-    ],
+    locations: ["Lakowe"],
   },
   {
     price: 6000,
-    locations: [
-      "Ajah Eti-Osa",
-    ],
+    locations: ["Ajah Eti-Osa"],
   },
-  
 ];
 
 export default function CheckoutPage() {
@@ -197,16 +186,17 @@ export default function CheckoutPage() {
 
   const [orderSent, setOrderSent] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
+
   const [form, setForm] = useState({
-  name: "",
-  phone: "",
-  email: "",
-  address: "",
-  city: "",
-  state: "",
-  deliveryLocation: "",
-  paymentReference: "",
-});
+    name: "",
+    phone: "",
+    email: "",
+    address: "",
+    city: "",
+    state: "",
+    deliveryLocation: "",
+    paymentReference: "",
+  });
 
   const subtotal = cart.reduce(
     (total, item) =>
@@ -215,21 +205,24 @@ export default function CheckoutPage() {
     0
   );
 
- const selectedDeliveryIndex = form.deliveryLocation.startsWith("zone-")
-  ? Number(form.deliveryLocation.replace("zone-", ""))
-  : -1;
+  const isOutsideLagos =
+    form.deliveryLocation === "outside-lagos";
 
-const selectedDeliveryZone =
-  selectedDeliveryIndex >= 0
-    ? deliveryZones[selectedDeliveryIndex]
-    : undefined;
+  const selectedDeliveryIndex = form.deliveryLocation.startsWith("zone-")
+    ? Number(form.deliveryLocation.replace("zone-", ""))
+    : -1;
 
-const deliveryFee =
-  form.deliveryLocation === "pickup"
-    ? 0
-    : selectedDeliveryZone?.price || 0;
+  const selectedDeliveryZone =
+    selectedDeliveryIndex >= 0
+      ? deliveryZones[selectedDeliveryIndex]
+      : undefined;
 
-const total = subtotal + deliveryFee; 
+  const deliveryFee =
+    form.deliveryLocation === "pickup"
+      ? 0
+      : selectedDeliveryZone?.price || 0;
+
+  const total = subtotal + deliveryFee;
 
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -240,36 +233,76 @@ const total = subtotal + deliveryFee;
     });
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
-  event.preventDefault();
-
-  if (!form.deliveryLocation) {
-  alert("Please select a delivery option.");
-  return;
-}
-
-if (!form.paymentReference.trim()) {
-  alert("Please enter your payment reference or transfer name.");
-  return;
-}
-
- const newOrderNumber = `IGB-${Date.now().toString().slice(-6)}`;
-
-setOrderNumber(newOrderNumber); 
-
-  const orderItems = cart
-    .map(
-      (item) =>
-        `• ${item.name} — ${item.color} — Size ${item.size} — Qty: ${item.quantity}`
-    )
-    .join("\n");
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
     if (cart.length === 0) {
-  alert("Your bag is empty.");
-  return;
-}
+      alert("Your bag is empty.");
+      return;
+    }
 
-  const message = `
+    if (!form.deliveryLocation) {
+      alert("Please select a delivery option.");
+      return;
+    }
+
+    // Only Lagos customers need to enter a payment reference.
+    if (!isOutsideLagos && !form.paymentReference.trim()) {
+      alert("Please enter your payment reference or transfer name.");
+      return;
+    }
+
+    const newOrderNumber = `IGB-${Date.now().toString().slice(-6)}`;
+
+    setOrderNumber(newOrderNumber);
+
+    const orderItems = cart
+      .map(
+        (item) =>
+          `• ${item.name} — ${item.color} — Size ${item.size} — Qty: ${item.quantity}`
+      )
+      .join("\n");
+
+    const deliveryOption = isOutsideLagos
+      ? "Outside Lagos — Delivery quote requested"
+      : form.deliveryLocation === "pickup"
+        ? "Pickup — FREE"
+        : selectedDeliveryZone
+          ? `Lagos Delivery — ₦${selectedDeliveryZone.price.toLocaleString()}`
+          : "Not selected";
+
+    // Different WhatsApp messages for Lagos and outside Lagos.
+    const message = isOutsideLagos
+      ? `
+Hello IGBALODE BATA 👋
+
+I would like to request a delivery quote for my order.
+
+ORDER NUMBER: ${newOrderNumber}
+
+CUSTOMER DETAILS
+Name: ${form.name}
+Phone: ${form.phone}
+Email: ${form.email}
+
+DELIVERY DETAILS
+Address: ${form.address}
+City/Town: ${form.city}
+State: ${form.state}
+Delivery Option: Outside Lagos
+
+ORDER ITEMS
+${orderItems}
+
+Footwear Subtotal: ₦${subtotal.toLocaleString()}
+
+Please confirm the delivery fee to my location and the complete amount payable.
+
+I will make payment after agreeing to the delivery charge.
+
+Thank you.
+      `.trim()
+      : `
 Hello IGBALODE BATA 👋
 
 Order Number: ${newOrderNumber}
@@ -285,13 +318,7 @@ DELIVERY DETAILS
 Address: ${form.address}
 City: ${form.city}
 State: ${form.state}
-Delivery Option: ${
-  form.deliveryLocation === "pickup"
-    ? "Pickup"
-    : selectedDeliveryZone
-      ? `Delivery — ₦${selectedDeliveryZone.price.toLocaleString()}`
-      : "Not selected"
-}
+Delivery Option: ${deliveryOption}
 
 PAYMENT
 Method: Bank Transfer
@@ -301,74 +328,92 @@ ORDER
 ${orderItems}
 
 Subtotal: ₦${subtotal.toLocaleString()}
+Delivery Fee: ₦${deliveryFee.toLocaleString()}
 Total: ₦${total.toLocaleString()}
 
 Please confirm my order. Thank you.
-  `.trim();
+      `.trim();
 
-  const whatsappNumber = "2347082065518";
+    const whatsappNumber = "2347082065518";
 
-  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-    message
-  )}`;
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
+      message
+    )}`;
 
-  window.open(whatsappUrl, "_blank");
-clearCart();
-setOrderSent(true);
-};
+    window.open(whatsappUrl, "_blank");
 
+    // Keep the cart for customers who are still confirming
+    // their delivery fee outside Lagos.
+    if (!isOutsideLagos) {
+      clearCart();
+    }
+
+    setOrderSent(true);
+  };
+
+  // Order confirmation screen
   if (orderSent) {
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-[#f5f3ee] px-6 py-24 text-center text-[#1c1b18]">
-      <div className="max-w-[560px]">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-[#171717]/15">
-          <span className="text-2xl">✓</span>
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#f5f3ee] px-6 py-24 text-center text-[#1c1b18]">
+        <div className="max-w-[560px]">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-[#171717]/15">
+            <span className="text-2xl">✓</span>
+          </div>
+
+          <p className="mt-8 text-[10px] font-semibold uppercase tracking-[0.3em] text-[#77736b]">
+            {isOutsideLagos ? "Delivery Quote Requested" : "Order Submitted"}
+          </p>
+
+          <div className="mx-auto mt-5 inline-flex items-center border border-[#171717]/10 bg-[#eeece5] px-5 py-3">
+            <span className="text-[9px] uppercase tracking-[0.18em] text-[#77736b]">
+              Order
+            </span>
+
+            <span className="ml-3 text-sm font-semibold tracking-[0.08em] text-[#1c1b18]">
+              #{orderNumber}
+            </span>
+          </div>
+
+          <h1 className="mt-4 font-display text-5xl leading-tight sm:text-6xl">
+            {isOutsideLagos
+              ? "Let's arrange your delivery."
+              : "Your order is on its way."}
+          </h1>
+
+          <p className="mx-auto mt-5 max-w-[460px] text-sm leading-6 text-[#68645d]">
+            {isOutsideLagos
+              ? "Your order details have been prepared and WhatsApp has been opened. We will confirm your delivery fee and the complete amount payable. You can make payment once you are comfortable with the delivery charge."
+              : "Your order details have been prepared and WhatsApp has been opened for you to send your order to IGBALODE BATA. We'll confirm your payment and delivery details once your message is received."}
+          </p>
+
+          {isOutsideLagos && (
+            <p className="mt-5 text-xs leading-6 text-[#77736b]">
+              Your items are still in your bag while your delivery fee is being
+              confirmed.
+            </p>
+          )}
+
+          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+            <Link
+              href="/shop"
+              className="bg-[#171717] px-7 py-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#f5f3ee]"
+            >
+              Continue Shopping
+            </Link>
+
+            <Link
+              href="/"
+              className="border border-[#171717]/15 px-7 py-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#171717] transition hover:border-[#171717]"
+            >
+              Back Home
+            </Link>
+          </div>
         </div>
+      </main>
+    );
+  }
 
-        <p className="mt-8 text-[10px] font-semibold uppercase tracking-[0.3em] text-[#77736b]">
-  Order Submitted
-</p>
-
-        <div className="mx-auto mt-5 inline-flex items-center border border-[#171717]/10 bg-[#eeece5] px-5 py-3">
-  <span className="text-[9px] uppercase tracking-[0.18em] text-[#77736b]">
-    Order
-  </span>
-
-  <span className="ml-3 text-sm font-semibold tracking-[0.08em] text-[#1c1b18]">
-    #{orderNumber}
-  </span>
-</div>
-
-        <h1 className="mt-4 font-display text-5xl leading-tight sm:text-6xl">
-  Your order is on its way.
-</h1>
-
-        <p className="mx-auto mt-5 max-w-[460px] text-sm leading-6 text-[#68645d]">
-  Your order details have been prepared and WhatsApp has been opened for
-  you to send your order to IGBALODE BATA. We&apos;ll confirm your payment
-  and delivery details with you once your message is received.
-</p>
-
-        <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-          <Link
-            href="/shop"
-            className="bg-[#171717] px-7 py-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#f5f3ee]"
-          >
-            Continue Shopping
-          </Link>
-
-          <Link
-            href="/"
-            className="border border-[#171717]/15 px-7 py-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#171717] transition hover:border-[#171717]"
-          >
-            Back Home
-          </Link>
-        </div>
-      </div>
-    </main>
-  );
-}
-
+  // Empty bag screen
   if (cart.length === 0) {
     return (
       <main className="min-h-screen bg-[#f5f3ee] px-6 py-24 text-[#1c1b18]">
@@ -417,14 +462,17 @@ setOrderSent(true);
             </h1>
 
             <form onSubmit={handleSubmit} className="mt-10 space-y-8">
-  <div>
-    <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#77736b]">
-      Customer Information
-    </p>
-    <p className="mt-2 text-xs leading-5 text-[#77736b]">
-      Enter your details so we can contact you about your order.
-    </p>
-  </div>
+              {/* Customer Information */}
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#77736b]">
+                  Customer Information
+                </p>
+
+                <p className="mt-2 text-xs leading-5 text-[#77736b]">
+                  Enter your details so we can contact you about your order.
+                </p>
+              </div>
+
               <div className="grid gap-6 sm:grid-cols-2">
                 <input
                   name="name"
@@ -493,188 +541,260 @@ setOrderSent(true);
                 />
               </div>
 
+              {/* Delivery Location */}
               <div className="mt-10">
-  <p className="text-[10px] font-semibold uppercase tracking-[0.2em]">
-    Delivery Location
-  </p>
-
-  <p className="mt-2 text-xs leading-5 text-[#77736b]">
-    Select the delivery price group that contains your location.
-  </p>
-
-  <div className="mt-5 space-y-3">
-    {deliveryZones.map((zone, index) => {
-      const selected = form.deliveryLocation === `zone-${index}`;
-
-      return (
-        <label
-          key={`${zone.price}-${index}`}
-          className={`block cursor-pointer border p-5 transition ${
-            selected
-              ? "border-[#171717] bg-[#eeece5]"
-              : "border-[#171717]/10 bg-transparent hover:border-[#171717]/30"
-          }`}
-        >
-          <div className="flex items-start gap-4">
-            <input
-              type="radio"
-              name="deliveryLocation"
-              value={`zone-${index}`}
-              checked={selected}
-              onChange={handleChange}
-              required
-              className="mt-1 h-4 w-4 accent-[#171717]"
-            />
-
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center justify-between gap-4">
-                <p className="text-sm font-semibold">
-                  ₦{zone.price.toLocaleString()}
+                <p className="text-[10px] font-semibold uppercase tracking-[0.2em]">
+                  Delivery Location
                 </p>
 
-                {selected && (
-                  <span className="text-[9px] font-semibold uppercase tracking-[0.15em]">
-                    Selected
-                  </span>
-                )}
+                <p className="mt-2 text-xs leading-5 text-[#77736b]">
+                  Select the delivery option that applies to you.
+                </p>
+
+                <div className="mt-5 space-y-3">
+                  {/* Lagos Delivery Zones */}
+                  {deliveryZones.map((zone, index) => {
+                    const selected =
+                      form.deliveryLocation === `zone-${index}`;
+
+                    return (
+                      <label
+                        key={`${zone.price}-${index}`}
+                        className={`block cursor-pointer border p-5 transition ${
+                          selected
+                            ? "border-[#171717] bg-[#eeece5]"
+                            : "border-[#171717]/10 bg-transparent hover:border-[#171717]/30"
+                        }`}
+                      >
+                        <div className="flex items-start gap-4">
+                          <input
+                            type="radio"
+                            name="deliveryLocation"
+                            value={`zone-${index}`}
+                            checked={selected}
+                            onChange={handleChange}
+                            required
+                            className="mt-1 h-4 w-4 accent-[#171717]"
+                          />
+
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center justify-between gap-4">
+                              <p className="text-sm font-semibold">
+                                ₦{zone.price.toLocaleString()}
+                              </p>
+
+                              {selected && (
+                                <span className="text-[9px] font-semibold uppercase tracking-[0.15em]">
+                                  Selected
+                                </span>
+                              )}
+                            </div>
+
+                            <p className="mt-3 text-xs leading-6 text-[#77736b]">
+                              {zone.locations.join(" · ")}
+                            </p>
+                          </div>
+                        </div>
+                      </label>
+                    );
+                  })}
+
+                  {/* Pickup */}
+                  <label
+                    className={`block cursor-pointer border p-5 transition ${
+                      form.deliveryLocation === "pickup"
+                        ? "border-[#171717] bg-[#eeece5]"
+                        : "border-[#171717]/10 bg-transparent hover:border-[#171717]/30"
+                    }`}
+                  >
+                    <div className="flex items-start gap-4">
+                      <input
+                        type="radio"
+                        name="deliveryLocation"
+                        value="pickup"
+                        checked={form.deliveryLocation === "pickup"}
+                        onChange={handleChange}
+                        required
+                        className="mt-1 h-4 w-4 accent-[#171717]"
+                      />
+
+                      <div>
+                        <div className="flex items-center gap-3">
+                          <p className="text-sm font-semibold">Pickup</p>
+
+                          <span className="text-sm font-semibold">FREE</span>
+                        </div>
+
+                        <p className="mt-3 text-xs leading-6 text-[#77736b]">
+                          16 Adalemo Street, Oke Koto, Agege.
+                          <br />
+                          Monday - Friday · 10am - 6pm
+                          <br />
+                          07082065518
+                        </p>
+                      </div>
+                    </div>
+                  </label>
+
+                  {/* Outside Lagos */}
+                  <label
+                    className={`block cursor-pointer border p-5 transition ${
+                      isOutsideLagos
+                        ? "border-[#171717] bg-[#eeece5]"
+                        : "border-[#171717]/10 bg-transparent hover:border-[#171717]/30"
+                    }`}
+                  >
+                    <div className="flex items-start gap-4">
+                      <input
+                        type="radio"
+                        name="deliveryLocation"
+                        value="outside-lagos"
+                        checked={isOutsideLagos}
+                        onChange={handleChange}
+                        required
+                        className="mt-1 h-4 w-4 accent-[#171717]"
+                      />
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <p className="text-sm font-semibold">
+                            Outside Lagos
+                          </p>
+
+                          <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#77736b]">
+                            Quote Required
+                          </span>
+                        </div>
+
+                        <p className="mt-3 text-xs leading-6 text-[#77736b]">
+                          For deliveries to other states. Your delivery fee
+                          will be confirmed based on your location before
+                          payment.
+                        </p>
+
+                        <p className="mt-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#1c1b18]">
+                          Request delivery quote on WhatsApp
+                        </p>
+                      </div>
+                    </div>
+                  </label>
+                </div>
               </div>
 
-              <p className="mt-3 text-xs leading-6 text-[#77736b]">
-  {zone.locations.join(" · ")}
-</p>
-            </div>
-          </div>
-        </label>
-      );
-    })}
+              {/* Payment Method - Lagos Customers Only */}
+              {!isOutsideLagos && (
+                <div className="mt-10 border border-[#171717]/10 bg-[#eeece5] p-6 lg:p-7">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#77736b]">
+                    Payment Method
+                  </p>
 
-    {/* Pickup */}
-    <label
-      className={`block cursor-pointer border p-5 transition ${
-        form.deliveryLocation === "pickup"
-          ? "border-[#171717] bg-[#eeece5]"
-          : "border-[#171717]/10 bg-transparent hover:border-[#171717]/30"
-      }`}
-    >
-      <div className="flex items-start gap-4">
-        <input
-  type="radio"
-  name="deliveryLocation"
-  value="pickup"
-  checked={form.deliveryLocation === "pickup"}
-  onChange={handleChange}
-  required
-  className="mt-1 h-4 w-4 accent-[#171717]"
-/>
+                  <div className="mt-5 border border-[#171717]/15 bg-[#f5f3ee] p-5">
+                    <div className="flex items-start gap-3">
+                      <div className="mt-1 h-3 w-3 rounded-full bg-[#171717]" />
 
-        <div>
-          <div className="flex items-center gap-3">
-            <p className="text-sm font-semibold">
-              Pickup
-            </p>
+                      <div>
+                        <p className="text-sm font-medium">Bank Transfer</p>
 
-            <span className="text-sm font-semibold">
-              FREE
-            </span>
-          </div>
+                        <p className="mt-2 text-xs leading-5 text-[#77736b]">
+                          Transfer the order amount to the account below.
+                          Your order will be processed after payment is
+                          confirmed.
+                        </p>
+                      </div>
+                    </div>
 
-          <p className="mt-3 text-xs leading-6 text-[#77736b]">
-            16 Adalemo Street, Oke Koto, Agege.
-            <br />
-            Monday - Friday · 10am - 6pm
-            <br />
-            07082065518
-          </p>
-        </div>
-      </div>
-    </label>
-  </div>
-</div>
+                    <div className="mt-6 space-y-4 border-t border-[#171717]/10 pt-5">
+                      <div>
+                        <p className="text-[9px] uppercase tracking-[0.18em] text-[#77736b]">
+                          Bank
+                        </p>
 
-              <div className="mt-10 border border-[#171717]/10 bg-[#eeece5] p-6 lg:p-7">
-  <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#77736b]">
-    Payment Method
-  </p>
+                        <p className="mt-1 text-sm font-medium">
+                          YOUR BANK NAME
+                        </p>
+                      </div>
 
-  <div className="mt-5 border border-[#171717]/15 bg-[#f5f3ee] p-5">
-    <div className="flex items-start gap-3">
-      <div className="mt-1 h-3 w-3 rounded-full bg-[#171717]" />
+                      <div>
+                        <p className="text-[9px] uppercase tracking-[0.18em] text-[#77736b]">
+                          Account Name
+                        </p>
 
-      <div>
-        <p className="text-sm font-medium">
-          Bank Transfer
-        </p>
+                        <p className="mt-1 text-sm font-medium">
+                          IGBALODE BATA
+                        </p>
+                      </div>
 
-        <p className="mt-2 text-xs leading-5 text-[#77736b]">
-          Transfer the order amount to the account below. Your order
-          will be processed after payment is confirmed.
-        </p>
-      </div>
-    </div>
+                      <div>
+                        <p className="text-[9px] uppercase tracking-[0.18em] text-[#77736b]">
+                          Account Number
+                        </p>
 
-    <div className="mt-6 space-y-4 border-t border-[#171717]/10 pt-5">
-      <div>
-        <p className="text-[9px] uppercase tracking-[0.18em] text-[#77736b]">
-          Bank
-        </p>
-        <p className="mt-1 text-sm font-medium">
-          YOUR BANK NAME
-        </p>
-      </div>
+                        <p className="mt-1 text-sm font-medium">
+                          0000000000
+                        </p>
+                      </div>
 
-      <div>
-        <p className="text-[9px] uppercase tracking-[0.18em] text-[#77736b]">
-          Account Name
-        </p>
-        <p className="mt-1 text-sm font-medium">
-          IGBALODE BATA
-        </p>
-      </div>
+                      <p className="mt-5 text-xs leading-5 text-[#77736b]">
+                        After making the transfer, enter the name used for
+                        the transfer or your bank transaction reference below.
+                      </p>
 
-      <div>
-        <p className="text-[9px] uppercase tracking-[0.18em] text-[#77736b]">
-          Account Number
-        </p>
-        <p className="mt-1 text-sm font-medium">
-          0000000000
-        </p>
-        <p className="mt-5 text-xs leading-5 text-[#77736b]">
-  After making the transfer, enter the name used for the transfer or your
-  bank transaction reference below.
-</p>
-        <input
-  name="paymentReference"
-  value={form.paymentReference}
-  onChange={handleChange}
-  placeholder="Enter transfer name or payment reference"
-  required
-  className="mt-6 w-full border-b border-[#171717]/15 bg-transparent px-0 py-4 text-sm outline-none placeholder:text-[#99958d] focus:border-[#171717]"
-/>
-      </div>
+                      <input
+                        name="paymentReference"
+                        value={form.paymentReference}
+                        onChange={handleChange}
+                        placeholder="Enter transfer name or payment reference"
+                        required
+                        className="mt-6 w-full border-b border-[#171717]/15 bg-transparent px-0 py-4 text-sm outline-none placeholder:text-[#99958d] focus:border-[#171717]"
+                      />
 
-      <div className="border-t border-[#171717]/10 pt-5">
-  <p className="text-[9px] uppercase tracking-[0.18em] text-[#77736b]">
-    Amount to Transfer
-  </p>
+                      <div className="border-t border-[#171717]/10 pt-5">
+                        <p className="text-[9px] uppercase tracking-[0.18em] text-[#77736b]">
+                          Amount to Transfer
+                        </p>
 
-  <p className="mt-2 font-display text-2xl text-[#1c1b18]">
-    ₦{total.toLocaleString()}
-  </p>
-</div>
-    </div>
-  </div>
-</div>
- 
+                        <p className="mt-2 font-display text-2xl text-[#1c1b18]">
+                          ₦{total.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
+              {/* Outside Lagos Information */}
+              {isOutsideLagos && (
+                <div className="mt-10 border border-[#171717]/10 bg-[#eeece5] p-6 lg:p-7">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#77736b]">
+                    Before You Continue
+                  </p>
+
+                  <p className="mt-4 text-sm leading-7 text-[#68645d]">
+                    You will not be required to make payment at this stage.
+                    Submit your order details through WhatsApp so we can
+                    confirm the delivery fee for your location.
+                  </p>
+
+                  <p className="mt-3 text-sm leading-7 text-[#68645d]">
+                    Once you agree to the delivery fee and complete order
+                    amount, we will provide payment details.
+                  </p>
+                </div>
+              )}
+
+              {/* Submit Button */}
               <button
                 type="submit"
                 className="mt-5 w-full bg-[#171717] px-6 py-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#f5f3ee] transition hover:bg-[#33312d]"
               >
-                I've Made the Transfer — Send My Order
+                {isOutsideLagos
+                  ? "Request Delivery Quote on WhatsApp"
+                  : "I've Made the Transfer — Send My Order"}
               </button>
             </form>
           </section>
 
+          {/* Order Summary */}
           <aside className="h-fit border border-[#171717]/10 bg-[#eeece5] p-7 lg:p-9">
             <p className="text-[10px] uppercase tracking-[0.25em] text-[#77736b]">
               Order Summary
@@ -687,16 +807,14 @@ setOrderSent(true);
                   className="flex justify-between gap-5 border-b border-[#171717]/10 pb-5"
                 >
                   <div>
-                    <p className="text-sm font-medium">
-                      {item.name}
-                    </p>
+                    <p className="text-sm font-medium">{item.name}</p>
 
                     <p className="mt-1 text-[10px] uppercase tracking-[0.12em] text-[#77736b]">
                       {item.color} · Size {item.size} · Qty {item.quantity}
                     </p>
                   </div>
 
-                  <p className="text-sm whitespace-nowrap">
+                  <p className="whitespace-nowrap text-sm">
                     ₦
                     {(
                       Number(item.price.replace(/[₦,]/g, "")) *
@@ -708,41 +826,45 @@ setOrderSent(true);
             </div>
 
             <div className="mt-7 border-t border-[#171717]/10 pt-6">
-  <div className="flex items-center justify-between">
-    <span className="text-[10px] uppercase tracking-[0.18em]">
-      Subtotal
-    </span>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase tracking-[0.18em]">
+                  Subtotal
+                </span>
 
-    <span className="text-sm">
-      ₦{subtotal.toLocaleString()}
-    </span>
-  </div>
+                <span className="text-sm">
+                  ₦{subtotal.toLocaleString()}
+                </span>
+              </div>
 
-  <div className="mt-4 flex items-center justify-between text-sm">
-    <span className="text-[#77736b]">
-      Delivery
-    </span>
+              <div className="mt-4 flex items-center justify-between text-sm">
+                <span className="text-[#77736b]">Delivery</span>
 
-    <span>
-      {deliveryFee > 0
-        ? `₦${deliveryFee.toLocaleString()}`
-        : "Select location"}
-    </span>
-  </div>
+                <span>
+                  {isOutsideLagos
+                    ? "To be confirmed"
+                    : form.deliveryLocation === "pickup"
+                      ? "FREE"
+                      : deliveryFee > 0
+                        ? `₦${deliveryFee.toLocaleString()}`
+                        : "Select location"}
+                </span>
+              </div>
 
-  <div className="mt-5 flex items-center justify-between border-t border-[#171717]/10 pt-5">
-    <span className="text-[10px] font-semibold uppercase tracking-[0.18em]">
-      Total
-    </span>
+              <div className="mt-5 flex items-center justify-between border-t border-[#171717]/10 pt-5">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.18em]">
+                  {isOutsideLagos ? "Footwear Subtotal" : "Total"}
+                </span>
 
-    <span className="font-display text-2xl">
-      ₦{total.toLocaleString()}
-    </span>
-  </div>
-</div>
+                <span className="font-display text-2xl">
+                  ₦{(isOutsideLagos ? subtotal : total).toLocaleString()}
+                </span>
+              </div>
+            </div>
 
             <p className="mt-5 text-xs leading-5 text-[#77736b]">
-              Delivery charges will be confirmed based on your location.
+              {isOutsideLagos
+                ? "Your final delivery fee and total amount will be confirmed with you on WhatsApp before payment."
+                : "Delivery charges are based on your selected location."}
             </p>
           </aside>
         </div>

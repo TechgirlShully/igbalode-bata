@@ -1,6 +1,12 @@
+
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 type CartItem = {
   id: string;
@@ -23,10 +29,12 @@ type CartContextType = {
     quantity: number
   ) => void;
   cartCount: number;
-clearCart: () => void;
+  clearCart: () => void;
 };
 
-const CartContext = createContext<CartContextType | undefined>(undefined);
+const CartContext = createContext<CartContextType | undefined>(
+  undefined
+);
 
 export function CartProvider({
   children,
@@ -34,18 +42,33 @@ export function CartProvider({
   children: React.ReactNode;
 }) {
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
+  // Load saved cart when the app opens
   useEffect(() => {
-    const savedCart = localStorage.getItem("igbalode-cart");
+    try {
+      const savedCart = localStorage.getItem("igbalode-cart");
 
-    if (savedCart) {
-      setCart(JSON.parse(savedCart));
+      if (savedCart) {
+        const parsedCart = JSON.parse(savedCart);
+
+        if (Array.isArray(parsedCart)) {
+          setCart(parsedCart);
+        }
+      }
+    } catch (error) {
+      console.error("Unable to load saved cart:", error);
+    } finally {
+      setIsLoaded(true);
     }
   }, []);
 
+  // Save cart only after the saved cart has loaded
   useEffect(() => {
+    if (!isLoaded) return;
+
     localStorage.setItem("igbalode-cart", JSON.stringify(cart));
-  }, [cart]);
+  }, [cart, isLoaded]);
 
   const addToCart = (item: CartItem) => {
     setCart((currentCart) => {
@@ -73,7 +96,11 @@ export function CartProvider({
     });
   };
 
-  const removeFromCart = (id: string, color: string, size: string) => {
+  const removeFromCart = (
+    id: string,
+    color: string,
+    size: string
+  ) => {
     setCart((currentCart) =>
       currentCart.filter(
         (item) =>
@@ -106,8 +133,8 @@ export function CartProvider({
   };
 
   const clearCart = () => {
-  setCart([]);
-};
+    setCart([]);
+  };
 
   const cartCount = cart.reduce(
     (total, item) => total + item.quantity,
