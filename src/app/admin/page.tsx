@@ -1,8 +1,8 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { supabase } from "@/lib/supabase";
 import {
   LayoutDashboard,
   Package,
@@ -19,9 +19,6 @@ import {
   Menu,
   X,
   ChevronRight,
-  Clock3,
-  CheckCircle2,
-  Truck,
   CreditCard,
 } from "lucide-react";
 
@@ -36,40 +33,16 @@ const navigation = [
 
 
 
-const orders = [
-  {
-    id: "#IB-1048",
-    customer: "Customer A",
-    product: "The Ademola",
-    amount: "₦55,000",
-    date: "28 Oct 2026",
-    status: "Pending",
-  },
-  {
-    id: "#IB-1047",
-    customer: "Customer B",
-    product: "The Ajibola",
-    amount: "₦70,000",
-    date: "27 Oct 2026",
-    status: "Paid",
-  },
-  {
-    id: "#IB-1046",
-    customer: "Customer C",
-    product: "The Adunni",
-    amount: "₦35,000",
-    date: "27 Oct 2026",
-    status: "Processing",
-  },
-  {
-    id: "#IB-1045",
-    customer: "Customer D",
-    product: "The Abefe",
-    amount: "₦45,000",
-    date: "26 Oct 2026",
-    status: "Delivered",
-  },
-];
+type Order = {
+  id: string;
+  customer: string;
+  product: string;
+  amount: string;
+  date: string;
+  status: string;
+};
+
+const orders: Order[] = [];
 
 type Product = {
   id: string;
@@ -83,71 +56,32 @@ type Product = {
   colors?: string[];
 };
 
-const initialProducts: Product[] = [
-  {
-    id: "1",
-    name: "The Ademola",
-    category: "Men's Mule",
-    price: "₦55,000",
-    image: "/products/men/ademola.jpg",
-    stock: 12,
-  },
-  {
-    id: "2",
-    name: "The Adunni",
-    category: "Women's Slippers",
-    price: "₦35,000",
-    image: "/products/women/adunni.jpg",
-    stock: 3,
-  },
-  {
-    id: "3",
-    name: "The Abefe",
-    category: "Men's Half Shoe",
-    price: "₦45,000",
-    image: "/products/men/abefe.jpg",
-    stock: 8,
-  },
-  {
-    id: "4",
-    name: "The Ajibola",
-    category: "Men's Loafers",
-    price: "₦70,000",
-    image: "/products/men/ajibola.jpg",
-    stock: 2,
-  },
-  {
-    id: "5",
-    name: "The Ajiboye",
-    category: "Men's Mules",
-    price: "₦30,000",
-    image: "/products/men/ajiboye.jpg",
-    stock: 10,
-  },
-  {
-    id: "6",
-    name: "The Aduke",
-    category: "Women's Slippers",
-    price: "₦35,000",
-    image: "/products/women/aduke.jpg",
-    stock: 6,
-  },
-];
-
 const statusStyles: Record<string, string> = {
   Pending: "bg-amber-50 text-amber-800",
   Paid: "bg-blue-50 text-blue-800",
   Processing: "bg-purple-50 text-purple-800",
+  Shipped: "bg-indigo-50 text-indigo-800",
   Delivered: "bg-emerald-50 text-emerald-800",
 };
 
 export default function AdminPage() {
   const [activePage, setActivePage] = useState("Overview");
+  const [currentDate, setCurrentDate] = useState("");
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    setCurrentDate(
+      new Date().toLocaleDateString("en-NG", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    );
+  }, []);
   const [mobileMenu, setMobileMenu] = useState(false);
- const [products, setProducts] = useState<Product[]>(initialProducts); 
-  const [ordersState, setOrdersState] = useState(orders);
-  const [ordersLoaded, setOrdersLoaded] = useState(false);
+ const [products, setProducts] = useState<Product[]>([]); 
+  const [ordersState, setOrdersState] = useState<Order[]>(orders);
   const [orderStatusFilter, setOrderStatusFilter] = useState("All");
 
  const emptyProductForm = {
@@ -162,62 +96,39 @@ export default function AdminPage() {
 };
 
 const [productsLoaded, setProductsLoaded] = useState(false);
+const [productError, setProductError] = useState("");
 
 useEffect(() => {
-  try {
-    const savedProducts = localStorage.getItem("igbalode-admin-products");
+  const loadProducts = async () => {
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .order("created_at", { ascending: true });
 
-    if (savedProducts) {
-      setProducts(JSON.parse(savedProducts) as Product[]);
+    if (error) {
+      console.error("Could not load products from Supabase:", error);
+      setProductError(error.message);
+      setProductsLoaded(true);
+      return;
     }
-  } catch (error) {
-    console.error("Could not load saved products:", error);
-  } finally {
+
+    setProducts((data ?? []).map((item: any) => ({
+      id: item.id,
+      name: item.name,
+      category: item.category,
+      price: `₦${Number(item.price).toLocaleString("en-NG")}`,
+      image: item.images?.[0] ?? item.colors?.[0]?.image ?? "/placeholder.png",
+      stock: Number(item.stock ?? 0),
+      description: item.description ?? "",
+      sizes: item.sizes ?? [],
+      colors: (item.colors ?? []).map((color: { name: string }) => color.name),
+    })));
     setProductsLoaded(true);
-  }
+  };
+
+  loadProducts();
 }, []);
 
-
-useEffect(() => {
-  try {
-    const savedOrders = localStorage.getItem("igbalode-admin-orders");
-
-    if (savedOrders) {
-      setOrdersState(JSON.parse(savedOrders));
-    }
-  } catch (error) {
-    console.error("Could not load saved orders:", error);
-  } finally {
-    setOrdersLoaded(true);
-  }
-}, []);
-
-useEffect(() => {
-  if (!ordersLoaded) return;
-
-  try {
-    localStorage.setItem(
-      "igbalode-admin-orders",
-      JSON.stringify(ordersState)
-    );
-  } catch (error) {
-    console.error("Could not save orders:", error);
-  }
-}, [ordersState, ordersLoaded]);
-
-
-useEffect(() => {
-  if (!productsLoaded) return;
-
-  try {
-    localStorage.setItem(
-      "igbalode-admin-products",
-      JSON.stringify(products)
-    );
-  } catch (error) {
-    console.error("Could not save products:", error);
-  }
-}, [products, productsLoaded]);
 const [productFormOpen, setProductFormOpen] = useState(false);
 const [editingProductId, setEditingProductId] = useState<string | null>(null);
 const [productForm, setProductForm] = useState(emptyProductForm);
@@ -269,7 +180,7 @@ const openEditProductForm = (product: Product) => {
   setProductFormOpen(true);
 };
 
-const saveProduct = (event: React.FormEvent<HTMLFormElement>) => {
+const saveProduct = async (event: React.FormEvent<HTMLFormElement>) => {
   event.preventDefault();
 
   const numericPrice = Number(productForm.price);
@@ -286,35 +197,81 @@ const saveProduct = (event: React.FormEvent<HTMLFormElement>) => {
   ) {
     alert("Please enter valid product details.");
     return;
-  };
-
-
-  const product: Product = {
-    id: editingProductId ?? Date.now().toString(),
-    name: productForm.name.trim(),
-    category: productForm.category.trim(),
-    price: `₦${numericPrice.toLocaleString("en-NG")}`,
-    image: productForm.image.trim(),
-    stock: numericStock,
-    sizes: productForm.sizes
-      .split(",")
-      .map((item) => item.trim())
-      .filter(Boolean),
-    colors: productForm.colors
-      .split(",")
-      .map((item) => item.trim())
-      .filter(Boolean),
-    description: productForm.description.trim(),
-  };
-
-  if (editingProductId) {
-    setProducts((current) =>
-      current.map((item) => (item.id === editingProductId ? product : item))
-    );
-  } else {
-    setProducts((current) => [product, ...current]);
   }
 
+  const slug = productForm.name.trim().toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  const colorNames = productForm.colors.split(",").map((item) => item.trim()).filter(Boolean);
+
+  // Preserve each existing colour's image when editing a product.
+  let existingImages: string[] = [];
+  let existingColors: { name: string; image: string }[] = [];
+
+  if (editingProductId) {
+    const { data: existingProduct, error: existingError } = await supabase
+      .from("products")
+      .select("images, colors")
+      .eq("id", editingProductId)
+      .single();
+
+    if (existingError) {
+      alert(`Could not retrieve the existing product: ${existingError.message}`);
+      return;
+    }
+
+    existingImages = existingProduct.images ?? [];
+    existingColors = existingProduct.colors ?? [];
+  }
+
+  const nextImages = editingProductId
+    ? [productForm.image.trim(), ...existingImages.filter((image) => image !== productForm.image.trim())]
+    : [productForm.image.trim()];
+
+  const nextColors = colorNames.map((name) => ({
+    name,
+    image: existingColors.find((color) => color.name === name)?.image ?? productForm.image.trim(),
+  }));
+
+  const payload = {
+    name: productForm.name.trim(),
+    slug,
+    category: productForm.category.trim(),
+    price: numericPrice,
+    images: nextImages,
+    colors: nextColors,
+    sizes: productForm.sizes.split(",").map((item) => item.trim()).filter(Boolean),
+    stock: numericStock,
+    description: productForm.description.trim(),
+    updated_at: new Date().toISOString(),
+  };
+
+  const result = editingProductId
+    ? await supabase.from("products").update(payload).eq("id", editingProductId).select().single()
+    : await supabase.from("products").insert(payload).select().single();
+
+  if (result.error) {
+    console.error("Could not save product:", result.error);
+    alert(`Could not save product: ${result.error.message}`);
+    return;
+  }
+
+  const data = result.data;
+  const savedProduct: Product = {
+    id: data.id,
+    name: data.name,
+    category: data.category,
+    price: `₦${Number(data.price).toLocaleString("en-NG")}`,
+    image: data.images?.[0] ?? "/placeholder.png",
+    stock: Number(data.stock ?? 0),
+    description: data.description ?? "",
+    sizes: data.sizes ?? [],
+    colors: (data.colors ?? []).map((color: { name: string }) => color.name),
+  };
+
+  setProducts((current) => editingProductId
+    ? current.map((item) => item.id === editingProductId ? savedProduct : item)
+    : [...current, savedProduct]
+  );
   setProductFormOpen(false);
   setEditingProductId(null);
   setProductForm({ ...emptyProductForm });
@@ -323,16 +280,22 @@ const saveProduct = (event: React.FormEvent<HTMLFormElement>) => {
 };
 
 
-const updateProductStock = (productId: string, newStock: number) => {
+const updateProductStock = async (productId: string, newStock: number) => {
   if (!Number.isInteger(newStock) || newStock < 0) return;
 
-  setProducts((current) =>
-    current.map((product) =>
-      product.id === productId
-        ? { ...product, stock: newStock }
-        : product
-    )
-  );
+  const { error } = await supabase.from("products")
+    .update({ stock: newStock, updated_at: new Date().toISOString() })
+    .eq("id", productId);
+
+  if (error) {
+    console.error("Could not update stock:", error);
+    alert(`Could not update stock: ${error.message}`);
+    return;
+  }
+
+  setProducts((current) => current.map((product) =>
+    product.id === productId ? { ...product, stock: newStock } : product
+  ));
 };
 
 
@@ -359,32 +322,7 @@ type Customer = {
   totalSpent: number;
 };
 
-const initialCustomers: Customer[] = [
-  {
-    id: "CUS-001",
-    name: "Adebayo Johnson",
-    email: "adebayo@example.com",
-    phone: "08012345678",
-    orders: 3,
-    totalSpent: 155000,
-  },
-  {
-    id: "CUS-002",
-    name: "Tomi Adeyemi",
-    email: "tomi@example.com",
-    phone: "08023456789",
-    orders: 2,
-    totalSpent: 90000,
-  },
-  {
-    id: "CUS-003",
-    name: "Kemi Williams",
-    email: "kemi@example.com",
-    phone: "08034567890",
-    orders: 1,
-    totalSpent: 35000,
-  },
-];
+const initialCustomers: Customer[] = [];
 
 const [customers] = useState<Customer[]>(initialCustomers);
 const [customerSearch, setCustomerSearch] = useState("");
@@ -403,7 +341,9 @@ const selectedCustomer = customers.find(
 
 
 const totalRevenue = ordersState
-  .filter((order) => order.status !== "Cancelled")
+  .filter((order) =>
+    ["Paid", "Processing", "Shipped", "Delivered"].includes(order.status)
+  )
   .reduce((sum, order) => {
     const amount = Number(
       String(order.amount).replace(/[₦,\s]/g, "")
@@ -519,7 +459,7 @@ const stats = [
                         active ? "text-black/50" : "text-white/40"
                       }`}
                     >
-                      4
+                      {ordersState.filter((order) => order.status === "Pending").length}
                     </span>
                   )}
                 </button>
@@ -535,9 +475,7 @@ const stats = [
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs font-medium">Store Administrator</p>
-              <p className="mt-1 text-[10px] text-white/40">
-                Demo dashboard
-              </p>
+              
             </div>
             <Ellipsis size={17} className="text-white/50" />
           </div>
@@ -566,7 +504,7 @@ const stats = [
 
           <div className="flex items-center gap-3">
             <span className="hidden text-[10px] text-[#77736b] sm:block">
-              Wednesday, 28 October 2026
+              {currentDate || "Store dashboard"}
             </span>
             <button
               aria-label="Notifications"
@@ -651,77 +589,6 @@ const stats = [
               </div>
 
               
-<div className="mt-8 border border-black/10 bg-white/60">
-  <div className="flex flex-col justify-between gap-3 border-b border-black/10 p-5 sm:flex-row sm:items-center sm:px-6">
-    <div>
-      <h3 className="font-display text-xl">Recent orders</h3>
-      <p className="mt-1 text-xs text-[#77736b]">
-        A quick look at your latest orders.
-      </p>
-    </div>
-
-    <button
-      type="button"
-      onClick={() => setActivePage("Orders")}
-      className="border border-black/15 px-4 py-3 text-[10px] font-semibold uppercase tracking-widest hover:bg-[#f5f3ee]"
-    >
-      View all orders
-    </button>
-  </div>
-
-  <div className="overflow-x-auto">
-    <table className="w-full min-w-[600px] text-left">
-      <thead>
-        <tr className="border-b border-black/10 text-[9px] uppercase tracking-widest text-[#77736b]">
-          <th className="px-6 py-4 font-medium">Order</th>
-          <th className="px-4 py-4 font-medium">Customer</th>
-          <th className="px-4 py-4 font-medium">Product</th>
-          <th className="px-4 py-4 font-medium">Amount</th>
-          <th className="px-4 py-4 font-medium">Status</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        {ordersState.slice(0, 5).map((order) => (
-          <tr key={order.id} className="border-b border-black/5">
-            <td className="px-6 py-5 text-xs font-medium">
-              {order.id}
-              <p className="mt-1 text-[10px] font-normal text-[#77736b]">
-                {order.date}
-              </p>
-            </td>
-
-            <td className="px-4 py-5 text-xs">{order.customer}</td>
-
-            <td className="px-4 py-5 text-xs">{order.product}</td>
-
-            <td className="px-4 py-5 text-xs font-medium">
-              {order.amount}
-            </td>
-
-            <td className="px-4 py-5">
-              <span
-                className={`inline-block px-2.5 py-1.5 text-[10px] ${
-                  statusStyles[order.status] ??
-                  "bg-gray-100 text-gray-700"
-                }`}
-              >
-                {order.status}
-              </span>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-
-    {ordersState.length === 0 && (
-      <p className="p-8 text-center text-xs text-[#77736b]">
-        No orders to display yet.
-      </p>
-    )}
-  </div>
-</div>
-
 
               <div className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-[1.6fr_1fr]">
                 <section className="min-w-0 border border-black/10 bg-white/60">
@@ -754,7 +621,7 @@ const stats = [
                         </tr>
                       </thead>
                       <tbody>
-                        {orders.slice(0, 4).map((order) => (
+                        {ordersState.slice(0, 4).map((order) => (
                           <tr
                             key={order.id}
                             className="border-b border-black/5 last:border-0"
@@ -782,6 +649,11 @@ const stats = [
                         ))}
                       </tbody>
                     </table>
+                    {ordersState.length === 0 && (
+                      <p className="p-8 text-center text-xs text-[#77736b]">
+                        No customer orders have been received yet.
+                      </p>
+                    )}
                   </div>
                 </section>
 
@@ -797,6 +669,11 @@ const stats = [
                   </div>
 
                   <div className="divide-y divide-black/5">
+                    {lowStock.length === 0 && (
+                      <p className="px-5 py-6 text-xs text-[#77736b]">
+                        No low-stock products right now.
+                      </p>
+                    )}
                     {lowStock.map((product) => (
                       <div
                         key={product.id}
@@ -848,7 +725,7 @@ const stats = [
                   <div>
                     <h3 className="font-display text-xl">Product catalogue</h3>
                     <p className="mt-1 text-[10px] text-[#77736b]">
-                      A quick look at your current collection
+                      Products currently saved in your catalogue
                     </p>
                   </div>
                   <button
@@ -900,7 +777,7 @@ const stats = [
                 <div>
                   <h2 className="font-display text-2xl">All products</h2>
                   <p className="mt-1 text-xs text-[#77736b]">
-                    {filteredProducts.length} products in this demo catalogue
+                    {filteredProducts.length} products in this admin catalogue
                   </p>
                 </div>
                 <button
@@ -923,6 +800,16 @@ const stats = [
                 </div>
               </div>
 
+              {productError && (
+                <p className="m-5 border border-red-200 bg-red-50 p-4 text-xs text-red-800">
+                  Could not load products from Supabase: {productError}
+                </p>
+              )}
+              {productsLoaded && products.length === 0 && !productError && (
+                <p className="p-8 text-center text-xs text-[#77736b]">
+                  No products have been found in Supabase yet.
+                </p>
+              )}
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[650px] text-left">
                   <thead>
@@ -930,7 +817,7 @@ const stats = [
                       <th className="px-6 py-4 font-medium">Product</th>
                       <th className="px-4 py-4 font-medium">Category</th>
                       <th className="px-4 py-4 font-medium">Price</th>
-                      <th className="px-4 py-4 font-medium">Demo stock</th>
+                      <th className="px-4 py-4 font-medium">Stock</th>
                       <th className="px-4 py-4 font-medium">Action</th>
                     </tr>
                   </thead>
@@ -986,7 +873,7 @@ const stats = [
               <div className="border-b border-black/10 p-5 sm:px-6">
                 <h2 className="font-display text-2xl">All orders</h2>
                 <p className="mt-1 text-xs text-[#77736b]">
-                  Review incoming orders in this demo.
+                  Customer orders will appear here after checkout is connected to Supabase.
                 </p>
               </div>
               <div className="border-b border-black/10 p-4 sm:px-6">
@@ -1160,7 +1047,7 @@ const stats = [
               <div className="border-b border-black/10 p-5 sm:px-6">
                 <h2 className="font-display text-2xl">Inventory overview</h2>
                 <p className="mt-1 text-xs text-[#77736b]">
-                  Sample stock figures for the current product catalogue.
+                  Stock quantities saved in your Supabase product records.
                 </p>
               </div>
               <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 xl:grid-cols-3">
@@ -1329,7 +1216,7 @@ const stats = [
 
       {filteredCustomers.length === 0 && (
         <p className="p-8 text-center text-xs text-[#77736b]">
-          No matching customers found.
+          No customer records yet. They will appear when checkout is connected.
         </p>
       )}
     </div>
@@ -1564,10 +1451,11 @@ const stats = [
 
           <footer className="mt-10 flex flex-col justify-between gap-2 border-t border-black/10 pt-5 text-[10px] text-[#77736b] sm:flex-row">
             <p>IGBALODE BATA · Store administration</p>
-            <p>UI preview — sample data only</p>
+            <p>Product catalogue connected to Supabase</p>
           </footer>
         </div>
       </div>
     </main>
   );
 }
+
